@@ -1,24 +1,12 @@
 :root{
-    --win-card-link-hover: #f5f2f2;
-    --win-card-inactive: #ffe1e1;
+    --win-light-blue: #d8ebf5;
+    --win-light-red: #ffe1e1;
 }
 
-a .win-card-link-active:hover .card-header, a .win-card-link-active:hover .card-body{
-    background-color: var(--win-card-link-hover) !important;
-}
-
-a .win-card-link-active{
-    height: 100% !important;
-}
-
-a .win-card-link-active:hover .card-header, a .win-card-link-active:hover .card-body{
-    background-color: var(--win-card-link-hover) !important;
-}
-
-.win-light-red .card-header{
-    background-color: var(--win-card-inactive) !important
+.win-light-blue{
+    background-color: var(--win-light-blue) !important
 }
 
 .win-light-red{
-    background-color: var(--win-card-inactive) !important
+    background-color: var(--win-light-red) !important
 }

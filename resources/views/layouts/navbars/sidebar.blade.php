@@ -168,6 +168,7 @@
             {{ __('Laisvų vietų skaičius:') }}
             <div class="row">
             <input id="Capacity" class="form-control ml-3 input-group mb-2" @if (isset($capacity_value)) value="{{ $capacity_value }}" @endif style="width:80%;" type="number" name="filterCapacityInput" placeholder="Nesvarbus" min="1" oninput="showDeleteButton(deleteCapacityButton)">
+            
             <input id="deleteCapacityButton" value="(x)" type="button" class="btn btn-danger p-0" style="width:10%; height: 45px; @if(!isset($capacity_value)) display:none; @endif;" onclick="deleteValue(Capacity)"></input>
             </div>
 

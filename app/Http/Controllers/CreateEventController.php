@@ -27,13 +27,24 @@ class CreateEventController extends Controller
         $this->middleware('auth');
     }
 
+    public function GetCourses(){
+        $courses = Course::all();
+
+        if(\Auth::user()->isRole() === 'paskaitu_lektorius'){
+            $lecturer_id = Lecturer::all()->where('user_id', '=', \Auth::user()->id)->first()->id;
+
+            $course_ids = LecturerHasCourse::all()->where('lecturer_id', $lecturer_id)->pluck('course_id');
+            $courses = $courses->whereIn('id', $course_ids)->collect();
+        }
+
+        return $courses;
+    }
+
     public function index(){
         $cities = City::all();
-//        $steam_centers = SteamCenter::all();
-//        $rooms = Room::all();
-        // 'steam_centers'=>$steam_centers, 'rooms'=>$rooms]
 
-        $courses = Course::all();
+        $courses = $this->GetCourses();
+
         $lecturers = Lecturer::all();
 
         return view('sukurti-paskaita', ['courses'=>$courses, 'lecturers'=>$lecturers, 'cities'=>$cities]);
@@ -127,8 +138,6 @@ class CreateEventController extends Controller
 
     public function insert(Request $request){
 
-
-
         $request->validate([
             'name' => 'required',
             'lecturers' => 'required',
@@ -155,8 +164,6 @@ class CreateEventController extends Controller
             'file.mimes' => ' Blogas pasirinktas failo formatas',
             'file.max' => ' Per didelis failas'
         ]);
-        
-
 
             $lecturer_ids=$request->lecturers;
             $event_ids=LecturerHasEvent::all()->whereIn('lecturer_id',$lecturer_ids)->pluck('event_id');
@@ -172,7 +179,7 @@ class CreateEventController extends Controller
                 'start_time'=>"$start_time",
                 'end_time'=>"$end_time"
             ));
-            
+
             // dd($naujasEventasTikrinimui==$reservations[0]);
 
             for($x = 0; $x<sizeof($reservations);$x++){
@@ -210,28 +217,28 @@ class CreateEventController extends Controller
             'is_manual_promoted' => 'f'
             ]);
         }
-        
-        
+
+
         foreach($request->lecturers as $lecturer){
             LecturerHasEvent::create(['lecturer_id' => $lecturer,
                 'event_id'=>$event->id]);
         }
 
-        
+
         $arr = explode("-", $request->time, 2);
         $start_time = $arr[0];
         $end_time = $arr[1];
 
         $date = $request->date;
 
-    
+
         Reservation::create(['room_id' => $request->room_id,
             'start_time' => $start_time,
             'end_time' => $end_time,
             'date' => $date,
             'event_id' => $event->id]);
 
-        
+
         return redirect()->back()->with('message', 'Paskaita pridėta. Ją galite matyti paskaitų puslapyje.');
     }
 }

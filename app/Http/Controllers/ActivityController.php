@@ -61,10 +61,10 @@ class ActivityController extends Controller
         
         $newpupilcount = $request->pupil_count;
         // dd($oldteacherpupilcount);
-        $subcapacity = $capacity ->capacity_left -$oldteacherpupilcount->pupil_count + $newpupilcount;
+        $newcapacityleft = $capacity ->capacity_left +$oldteacherpupilcount->pupil_count - $newpupilcount;
         Event::where('id',$request->event_id)
                                                 ->update([
-                                                        'capacity_left'=>$subcapacity
+                                                        'capacity_left'=>$newcapacityleft
                                                     ]);
         EventHasTeacher::where([
             ['event_id','=',$request->event_id],

@@ -17,26 +17,28 @@ class CourseController extends Controller
         $this->middleware('auth');
     }
 
-    public function index()
-    {
-        if(\Auth::user()->isRole() === 'admin'){
-            $courses = Course::all();
-            $count = $courses->count()/2;
-        }else if(\Auth::user()->isRole() === 'paskaitu_lektorius'){
+    public function GetCourses(){
+        $courses = Course::all();
+
+        if(\Auth::user()->isRole() === 'paskaitu_lektorius'){
             $lecturer_id = Lecturer::all()->where('user_id', '=', \Auth::user()->id)->first()->id;
 
             $course_ids = LecturerHasCourse::all()->where('lecturer_id', $lecturer_id)->pluck('course_id');
-            $courses = Course::all()->whereIn('id', $course_ids)->collect();
+            $courses = $courses->whereIn('id', $course_ids)->collect();
+        }
 
-            $count = sizeof($courses)/2;
+        return $courses;
+    }
+
+    public function index()
+    {
+        if(\Auth::user()->isRole() === 'admin' || \Auth::user()->isRole() === 'paskaitu_lektorius'){
+            $courses = $this->GetCourses();
+            return view('kursai',['courses'=>$courses]);
         }else{
             return view('/about');
         }
 
-        if($count < 1){
-            $count = 2;
-        }
 
-        return view('kursai',['courses'=>$courses, 'count'=>$count]);
     }
 }

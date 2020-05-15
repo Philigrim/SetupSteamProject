@@ -246,9 +246,9 @@
                 @if (Auth::user()->isRole()=="admin")
                 <row class="float-right">
                     @if($reservation->event->is_manual_promoted)
-                        <input data-id="{{ $reservation->event->id }}" class="promote-class" checked type="checkbox" data-onstyle="danger" data-toggle="toggle" data-on="Demote" data-off="Promote">
+                        <input data-id="{{ $reservation->event->id }}" class="promote-class" checked type="checkbox" data-onstyle="danger" data-toggle="toggle" data-on="Stabdyti iškelima">
                     @else
-                        <button class="btn btn-primary mt-2" disabled>AutoPromoted</button>
+                        <button class="btn btn-primary mt-2" style="opacity: 1;" disabled>Iškeltas automatiškai</button>
                     @endif
                 </row>
                 <br>
