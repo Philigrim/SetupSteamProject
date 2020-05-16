@@ -14,6 +14,9 @@
     <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
+{{--WIN CSS--}}
+    <link href="{{ asset('css/win.css') }}" rel="stylesheet" type="text/css" >
+
     <script>
     jQuery(document).ready(function($) {
       $('.promote-class').change(function() {
@@ -28,9 +31,6 @@
       })
     })
     </script>
-
-    <link href="{{ asset('css/win.css') }}" rel="stylesheet" type="text/css" >
-    <link href="/css/win.css" rel="stylesheet">
 @endsection
 @section('content')
     @if($course_title == null)
@@ -139,7 +139,7 @@
                   <h5 class="pt-3 pr-2">{{ $reservation->date }}, {{ substr($reservation->start_time, 0, 5) }} - {{ substr($reservation->end_time, 0, 5) }}</h5>
                   <img class="icon-sm pt-3" src="{{ asset('argon/img/icons/common/user.svg') }}" alt="">
                   @if($reservation->event->capacity_left > 0)
-                      <h5 class="pt-3 pr-2">{{ $reservation->event->capacity_left }}/{{ $reservation->event->max_capacity }}</h5>
+                      <h5 class="pt-3 pr-2">{{ $reservation->event->max_capacity - $reservation->event->capacity_left }}/{{ $reservation->event->max_capacity }}</h5>
                   @else
                       <h5 class="pt-3 pr-2 text-red">Vietų nėra</h5>
                   @endif
