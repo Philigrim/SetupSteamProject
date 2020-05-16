@@ -111,8 +111,12 @@ class CreateEventController extends Controller
     }
 
     public function fetch_time(Request $request){
-        $date_value = $request->get('date_value');
+        $date_values = $request->get('date_values');
+        $date_ids = $request->get('date_ids');
         $room_value = $request->get('room_value');
+        $date_value = $request->get('date_value');
+
+        $date_id_value = array();
 
         $start_times = array();
         $start_times['08:30:00'] = '10:00:00';
@@ -120,20 +124,42 @@ class CreateEventController extends Controller
         $start_times['12:00:00'] = '13:30:00';
         $start_times['14:00:00'] = '15:30:00';
 
-        $reservations = Reservation::all()->where('date', '=', $date_value)->where('room_id', '=', $room_value);
+        if($date_values != '' && $date_ids != null){
+            $output_values = array();
 
-        if($reservations != null){
-            foreach($reservations as $res){
-                unset($start_times[$res->start_time]);
+            for($x = 0; $x < sizeof($date_values); $x++){
+                $date_id_value[$date_ids[$x]] = $date_values[$x];
             }
-        }
 
-        $output = '<option value="" selected disabled>Laikas</option>';
-        foreach($start_times as $start_time => $end_time){
-            $output .= '<option value="'. $start_time .'-'. $end_time .'">'. substr($start_time, 0, 5) .'-'. substr($end_time, 0, 5) .'</option>';
-        }
+            foreach($date_id_value as $id => $value){
+                $output_values[$id] = $this->return_output_values($value, $room_value, $start_times);
+            }
 
-        echo $output;
+            $json_file = json_encode($output_values);
+            echo $json_file;
+        }else{
+            $json_file = json_encode($this->return_output_values($date_value, $room_value, $start_times));
+            $json_file = stripslashes($json_file);
+            echo $json_file;
+        }
+    }
+
+    public function return_output_values($date_value, $room_value, $start_times){
+        if($date_value != ''){
+            $reservations = Reservation::all()->where('date', '=', $date_value)->where('room_id', '=', $room_value);
+
+            if($reservations != null){
+                foreach($reservations as $res){
+                    unset($start_times[$res->start_time]);
+                }
+            }
+
+            $output = '<option value="" selected disabled>Laikas</option>';
+            foreach($start_times as $start_time => $end_time){
+                $output .= '<option value="'. $start_time .'-'. $end_time .'">'. substr($start_time, 0, 5) .'-'. substr($end_time, 0, 5) .'</option>';
+            }
+            return $output;
+        }
     }
 
     public function insert(Request $request){
@@ -169,11 +195,11 @@ class CreateEventController extends Controller
             $event_ids=LecturerHasEvent::all()->whereIn('lecturer_id',$lecturer_ids)->pluck('event_id');
             $events = Event::all()->whereIn('id',$event_ids)->collect();
             $reservations = Reservation::select('date','start_time','end_time')->whereIn('event_id',$event_ids)->get();
-            
+
             $arr = explode("-", $request->time, 2);
             $start_time = $arr[0];
             $end_time = $arr[1];
-    
+
             $naujasEventasTikrinimui =collect(array(
                 'date'=>"$request->date",
                 'start_time'=>"$start_time",

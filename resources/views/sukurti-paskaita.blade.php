@@ -10,6 +10,7 @@
     <link href="/gijgo/dist/modular/css/datepicker.css" rel="stylesheet" type="text/css">
     <script src="/gijgo/dist/modular/js/datepicker.js"></script>
 
+
 {{--Nedulio skriptai--}}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
@@ -103,19 +104,19 @@
                             <div class="row d-flex justify-content-start" id="date-time-capacity0">
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <input class=" form-group form-control input-group update-time last-date" name="date" placeholder="Data" id="datepicker0" />
+                                        <input class="my-date form-group form-control input-group update-time last-date" name="date" placeholder="Data" id="datepicker0" />
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <select class="form-control dropdown-menu-arrow" name="time" id="time0" >
+                                        <select class="time form-control dropdown-menu-arrow" name="time" id="time0" >
                                             <option selected disabled>Laikas</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <input class="form-control input-group" id="set-capacity0" type="number" min="1" max="100" name="capacity" value="1" placeholder="Žmonių skaičius">
+                                        <input class="capacity form-control input-group" id="set-capacity0" type="number" min="1" max="100" name="capacity" value="1" placeholder="Žmonių skaičius">
                                     </div>
                                 </div>
                             </div>
@@ -123,6 +124,7 @@
                         <div class="row">
                             <button type="button" id="add-item" class="btn btn-facebook"></button>
                             <button type="button" id="remove-item" class="btn btn-danger"></button>
+                            <input id="set-row-amount" type="number" min="1" max="30" previous="1">
                         </div>
                         <div class="row">
                             <div class="col-md-12">
@@ -131,7 +133,6 @@
                                 </div>
                             </div>
                         </div>
-                @csrf
                 <div class="form-group">
                     <input type="file" class="form-control-file" multiple name="file" id="file" style="display:none" aria-describedby="fileHelp">
                     <button  type="button"  class="btn-default"  onclick="document.getElementById('file').click()">Pasirinkite failą</button>
@@ -166,7 +167,15 @@
 
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
 <script type="text/javascript">
-    new GijgoDatePicker(document.getElementById('datepicker0'), { uiLibrary: 'bootstrap4', format: 'yyyy-mm-dd' });
+    // new GijgoDatePicker(document.getElementById('datepicker0'), { uiLibrary: 'bootstrap4', format: 'yyyy-mm-dd' });
+
+    new GijgoDatePicker(document.getElementById('datepicker0'), {
+        change: function (e) {
+            date_change(e);
+        },
+        uiLibrary: 'bootstrap4',
+        format: 'yyyy-mm-dd'
+    });
 
     $('.dynamic-lecturers').change(function update_lecturers(){
         if($(this).val() != ''){
@@ -184,9 +193,9 @@
             })
         }
     })
-    $("#file").change(function(){
-  $("#file-name").text(this.files[0].name);
-});
+        $("#file").change(function(){
+        $("#file-name").text(this.files[0].name);
+    });
 
     $('.dynamic-ccr').change(function update_multi_dropdown(){
         if($(this).val() != ''){
@@ -200,7 +209,13 @@
                 data:{select:select, value:value, _token:_token, dependent:dependent},
                 success:function(result){
                     $('#room_id').html('<option value="" selected disabled>Kambarys</option>')
-                    $('#time').html('<option value="" selected disabled>Laikas</option>');
+                    var rows = $(".time").map(function() {
+                        return this.id;
+                    }).get();
+
+                    for(let i = 0; i < rows.length; i++){
+                        $('#' + rows[i]).html('<option value="" selected disabled>Laikas</option>');
+                    }
                     $('#set-capacity').attr("max", 1);
                     $('#set-capacity').val(1);
                     $('#'+dependent).html(result);
@@ -209,33 +224,71 @@
         }
     })
 
-    $('.update-time').change(function update_time(){
-        if($(this).val() != ''){
+    $('#room_id').change(function(){
+        alert("room has changed");
+        var room_value = $(this).val();
+        var _token = $('input[name="_token').val();
+        if(room_value != null){
+            var room_capacity = $('#room_id').find(':selected').data('capacity');
+            alert(room_capacity);
+            $('.capacity').attr("max", room_capacity);
+            $('.capacity').val(1);
+
+            var date_ids = $(".my-date").map(function() {
+                return this.id;
+            }).get();
+
+            var date_values = [];
+
+            for(let i = 0; i < date_ids.length; i++){
+                date_values[i] = ($('#' + date_ids[i]).val());
+            }
+
+            $.ajax({
+                url: "{{ route('createeventcontroller.fetch_time') }}",
+                method: "POST",
+                data: {room_value: room_value, date_ids: date_ids, date_values: date_values, _token: _token},
+                success: function (result) {
+                    result = JSON.parse(result);
+                    for (var key in result) {
+                        if(result.hasOwnProperty(key)){
+                            var id_count = key.substring(10, key.length);
+                            $('#time' + id_count).html(result[key]);
+                        }
+                    }
+                }
+            })
+        }
+    })
+
+    function date_change(event) {
+        if ($(event.target).val() != '') {
             var room_value = $('#room_id').val();
-            var date_value = $('#datepicker').val();
-            if(room_value != null && date_value != ''){
+            var date_value = $(event.target).val();
+            var date_id = $(event.target).attr("id");
+            var date_count = date_id.substring(10, date_id.length);
+            if (room_value != null && date_value != '') {
                 var _token = $('input[name="_token').val();
-                var room_capacity = $('#'+room_value).data('capacity');
-                $('#set-capacity').attr("max", room_capacity);
                 $.ajax({
-                    url:"{{ route('createeventcontroller.fetch_time') }}",
+                    url: "{{ route('createeventcontroller.fetch_time') }}",
                     method: "POST",
-                    data:{room_value:room_value, date_value:date_value, _token:_token},
-                    success:function(result){
-                        $('#time').html(result);
+                    data: {room_value: room_value, date_value: date_value, _token: _token},
+                    success: function (result) {
+                        $('#time' + date_count).html(result);
                     }
                 })
-            }else if(room_value != null){
+            } else if (room_value != null) {
                 var room_capacity = $('#room_id').find(':selected').data('capacity');
                 $('#set-capacity').attr("max", room_capacity);
                 $('#set-capacity').val(1);
             }
-        }else{
+        } else {
             $('#time').html('<option value="" selected disabled>Laikas</option>');
         }
-    })
+    }
 
-    $('#set-capacity').change(function(){
+
+    $('.capacity').on('change', function(){
         if(parseInt($('#set-capacity').val()) > parseInt($('#set-capacity').attr("max"))){
             $('#set-capacity').val($('#set-capacity').attr("max"));
         }else if($('#set-capacity').val() < $('#set-capacity').attr("min")){
@@ -243,40 +296,50 @@
         }
     })
 
-    $(document).ready(function(){
-        $("#add-item").click(function(){
-            var last_date_id = $('.last-date').attr('id');
-            var last_date_count = last_date_id.substring(10, last_date_id.length);
+    function add_item(){
+        var last_date_id = $('.last-date').attr('id');
+        var last_date_count = last_date_id.substring(10, last_date_id.length);
+        var new_date_id = "datepicker" + (parseInt(last_date_count) + 1);
+        var new_time_id = "time" + (parseInt(last_date_count) + 1);
+        var new_set_capacity_id = "set-capacity" + (parseInt(last_date_count) + 1);
+        if($('#room_id').find(':selected').data('capacity')){
+            var room_capacity = $('#room_id').find(':selected').data('capacity');
+        }
+        var new_row_id = "date-time-capacity" + (parseInt(last_date_count) + 1);
+        $(".primary-input-fields").append(" <div class=\"row d-flex justify-content-start date-time-capacity\" id=\"" + new_row_id + "\">\n" +
+            "                            <div class=\"col-md-4\">\n" +
+            "                                <div class=\"form-group\">\n" +
+            "                                    <input class=\"my-date form-group form-control input-group update-time last-date\" name=\"date\" placeholder=\"Data\" id=\"" + new_date_id + "\" />\n" +
+            "                                </div>\n" +
+            "                            </div>\n" +
+            "                            <div class=\"col-md-4\">\n" +
+            "                                <div class=\"form-group\">\n" +
+            "                                    <select name=\"time\" id=\"" + new_time_id + "\" class=\"time form-control dropdown-menu-arrow\" >\n" +
+            "                                        <option selected disabled>Laikas</option>\n" +
+            "                                    </select>\n" +
+            "                                </div>\n" +
+            "                            </div>\n" +
+            "                            <div class=\"col-md-4\">\n" +
+            "                                <div class=\"form-group\">\n" +
+            "                                    <input class=\"capacity form-control input-group\" id=\"" + new_set_capacity_id + "\" type=\"number\" min=\"1\" max=\"" + room_capacity + "\" name=\"capacity\" value=\"1\" placeholder=\"Žmonių skaičius\">\n" +
+            "                                </div>\n" +
+            "                            </div>\n" +
+            "                        </div>");
+        $('#' + last_date_id).removeClass('last-date');
+        $('#' + new_date_id).addClass('last-date');
 
-            var new_date_id = "datepicker" + (parseInt(last_date_count) + 1);
-            var new_time_id = "time" + (parseInt(last_date_count) + 1);
-            var new_set_capacity_id = "set-capacity" + (parseInt(last_date_count) + 1);
-            var new_row_id = "date-time-capacity" + (parseInt(last_date_count) + 1);
-            $(".primary-input-fields").append(" <div class=\"row d-flex justify-content-start date-time-capacity\" id=\"" + new_row_id + "\">\n" +
-                "                            <div class=\"col-md-4\">\n" +
-                "                                <div class=\"form-group\">\n" +
-                "                                    <input class=\" form-group form-control input-group update-time last-date\" name=\"date\" placeholder=\"Data\" id=\"" + new_date_id + "\" />\n" +
-                "                                </div>\n" +
-                "                            </div>\n" +
-                "                            <div class=\"col-md-4\">\n" +
-                "                                <div class=\"form-group\">\n" +
-                "                                    <select name=\"time\" id=\"" + new_time_id + "\" class=\"form-control dropdown-menu-arrow\" >\n" +
-                "                                        <option selected disabled>Laikas</option>\n" +
-                "                                    </select>\n" +
-                "                                </div>\n" +
-                "                            </div>\n" +
-                "                            <div class=\"col-md-4\">\n" +
-                "                                <div class=\"form-group\">\n" +
-                "                                    <input class=\"form-control input-group\" id=\"" + new_set_capacity_id + "\" type=\"number\" min=\"1\" max=\"100\" name=\"capacity\" value=\"1\" placeholder=\"Žmonių skaičius\">\n" +
-                "                                </div>\n" +
-                "                            </div>\n" +
-                "                        </div>");
-            $('#' + last_date_id).removeClass('last-date');
-            $('#' + new_date_id).addClass('last-date');
-            new GijgoDatePicker(document.getElementById(new_date_id), { uiLibrary: 'bootstrap4', format: 'yyyy-mm-dd' });
+        new GijgoDatePicker(document.getElementById(new_date_id), {
+            change: function (e) {
+                date_change(e);
+            },
+            uiLibrary: 'bootstrap4',
+            format: 'yyyy-mm-dd'
         });
+    }
 
-        $("#remove-item").click(function(){
+    $("#add-item").click(add_item);
+
+        function remove_item(){
             var rows = $(".date-time-capacity").map(function() {
                 return this.id;
             }).get();
@@ -292,8 +355,43 @@
             }else{
                 $("#datepicker0").addClass("last-date");
             }
+        }
+
+        $("#remove-item").click(remove_item);
+
+        $("#set-row-amount").change(function(){
+            if(parseInt($('#set-row-amount').val()) > parseInt($('#set-row-amount').attr("max"))){
+                $('#set-row-amount').val($('#set-row-amount').attr("max"));
+            }else if($('#set-row-amount').val() < $('#set-row-amount').attr("min")){
+                $('#set-row-amount').val($('#set-row-amount').attr("min"));
+            }
+
+            var rows_set = parseInt($(this).val());
+            var previous_rows_set = parseInt($(this).attr("previous"));
+
+            if(rows_set > previous_rows_set){
+                let num_rows_to_add = rows_set - previous_rows_set;
+                for(let i = 0; i < num_rows_to_add; i++){
+                    add_item();
+                }
+                $(this).attr("previous", rows_set);
+            }else if(rows_set < previous_rows_set){
+                let num_rows_to_remove = previous_rows_set - rows_set;
+                for(let i = 0; i < num_rows_to_remove; i++){
+                    remove_item();
+                }
+                $(this).attr("previous", rows_set);
+            }
         });
-    });
+
+        $(document).ready(function() {
+            $(window).keydown(function(event){
+                if(event.keyCode == 13) {
+                    event.preventDefault();
+                    return false;
+                }
+            });
+        })
 </script>
 
 @endsection
