@@ -16,8 +16,18 @@
                         <h1 class="p-0 m-0">{{ $course->course_title }}</h1>
                     </div>
                     <div class="card-body">
+                        <div class="p-1 pl-1 pr-1 mb-1 bg-darker rounded col-1">
+                            <h6 class="text-white text-center mb-0">{{ $course->subject->subject }}</h6>
+                        </div>
                         <div class="">
                             <p class="">{{ $course->description }}</p>
+                        </div>
+                        <div class="row p-0 m-0" id="lecturers">
+                            @foreach($lecturers[$course->id] as $lecturer)
+                                <button class="p-1 shadow--hover mr-1 mb-1 pl-2 pr-2 bg-darker rounded border-0">
+                                    <h6 class="text-white text-center mb-0">{{ $lecturer->lecturer->user->firstname }} {{ $lecturer->lecturer->user->lastname }}</h6>
+                                </button>
+                            @endforeach
                         </div>
                         @if(Auth::user()->isRole()=="admin" || Auth::user()->isRole()=="paskaitu_lektorius")
                         <div class="col">
@@ -30,10 +40,12 @@
                         </div>
                         @endif
                     </div>
-                    <div class="card-footer text-center">
+                    <div class="card-footer p-2 text-center">
                         <form action = "{{route('coursecontroller.index_reservations')}}" method="post">
                             @csrf
-                            <button type="submit" href="#" class="btn-primary btn" value="{{ $course->id }}">Paskaitos</button>
+                            <div class="form-group p-0 m-0 col-2 center">
+                                <button type="submit" href="#" class="form-control btn-primary btn" name="course_id" value="{{ $course->id }}">Paskaitos</button>
+                            </div>
                             {{ csrf_field() }}
                         </form>
                     </div>
@@ -47,22 +59,22 @@
             @endif
         </div>
     @endforeach
-    <script>
-        {{--$(document).on('click', '.show_lectures', function(){--}}
-        {{--    var course_id = $(this).val();--}}
-        {{--    var _token = $('input[name="_token').val();--}}
-        {{--    $.ajax({--}}
-        {{--        url:"{{ route('coursecontroller.index_reservations') }}",--}}
-        {{--        method: "POST",--}}
-        {{--        data:{course_id:course_id, _token:_token},--}}
-        {{--        success:function(result){--}}
+        <script>
+            {{--$(document).on('click', '.show_lectures', function(){--}}
+            {{--    var course_id = $(this).val();--}}
+            {{--    var _token = $('input[name="_token').val();--}}
+            {{--    $.ajax({--}}
+            {{--        url:"{{ route('coursecontroller.index_reservations') }}",--}}
+            {{--        method: "POST",--}}
+            {{--        data:{course_id:course_id, _token:_token},--}}
+            {{--        success:function(result){--}}
 
-        {{--        },--}}
-        {{--        error:function(x, e){--}}
-        {{--            alert(x);--}}
-        {{--            alert(e);--}}
-        {{--        }--}}
-        {{--    });--}}
-        {{--});--}}
-    </script>
+            {{--        },--}}
+            {{--        error:function(x, e){--}}
+            {{--            alert(x);--}}
+            {{--            alert(e);--}}
+            {{--        }--}}
+            {{--    });--}}
+            {{--});--}}
+        </script>
 @endsection

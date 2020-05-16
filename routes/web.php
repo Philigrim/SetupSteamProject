@@ -40,14 +40,15 @@ Route::patch('/faq/{faq_id}', 'FAQController@update')->name('faq.update');
 Route::delete('/faq/{faq_id}', 'FAQController@destroyById')->name('faq.destroy');
 Route::delete('/faq/{question}', 'FAQController@destroyByQ')->name('q.destroy');
 });
+
 Route::group(['prefix' => 'kursai'], function(){
     Route::get('/','CourseController@index')->name('Kursai');
-    Route::post('/paskaitos','CourseController@index_reservations')->name('coursecontroller.index_reservations');
+    Route::post('/','CourseController@index_reservations')->name('coursecontroller.index_reservations');
 });
-
 
 Route::group(['prefix' => 'paskaitos'], function(){
     Route::get('/','EventController@index')->name('Paskaitos');
+    Route::get('/{course_id}','EventController@index')->name('eventcontroller.course_events');
     Route::post('/','EventController@insert')->name('eventcontroller.insert');
     Route::get('/promote','EventController@promote')->name('paskaitos.promote');
     Route::post('/fetch_lecturers','EventController@fetch_lecturers')->name('eventcontroller.fetch_lecturers');

@@ -19,19 +19,38 @@ use App\Course;
 use App\SteamCenterHasRoom;
 use Illuminate\Http\Request;
 use App\File;
+use Illuminate\Support\Facades\Session;
 class EventController extends Controller
 {
-    public function index(){
+    public function index($course_id = -1){
         date_default_timezone_set('Europe/Vilnius');
         $today_date = date('Y-m-d', time());
         $time_now = date('H:i:s', time());
 
-        $reservations = Reservation::all();
+        $course_id = intval($course_id);
+
+        if($course_id != -1){
+            $event_ids = Event::all()->where('course_id', '=', $course_id)->pluck('id');
+
+            $reservations = Reservation::all()->whereIn('event_id', $event_ids);
+
+            $course = Course::all()->where('id', '=', $course_id)->first();
+
+            if($course != null){
+                $course_title = $course->course_title;
+            }else{
+                $course_title = 'neegzistuoja';
+            }
+        }else{
+            $reservations = Reservation::all();
+
+            $course_title = null;
+        }
 
         $futureReservations1 = $reservations->where('date', '>', $today_date);
         $todayFutureReservations2 = $reservations->where('date', $today_date)->where('start_time', '>', $time_now);
         $reservations = $futureReservations1->merge($todayFutureReservations2);
-        
+
         $lecturers = LecturerHasEvent::all()->groupBy('event_id')->collect();
         $events = Event::all();
         $count = $reservations->count()/2;
@@ -39,14 +58,14 @@ class EventController extends Controller
         if($count == 0.5){
             $count = 2;
         }
-        
+
         $subjects = Subject::all();
         $cities = City::all();
 
         $lecturersForEdit = Lecturer::all();
         $courses = Course::all();
 
-        return view('paskaitos', ['events'=>$events, 'count'=>$count, 'lecturers'=>$lecturers, 'reservations'=>$reservations, 'subjects'=>$subjects, 'cities'=>$cities, 'courses'=>$courses, 'lecturersForedit'=>$lecturersForEdit]);
+        return view('paskaitos', ['events'=>$events, 'count'=>$count, 'lecturers'=>$lecturers, 'reservations'=>$reservations, 'subjects'=>$subjects, 'cities'=>$cities, 'courses'=>$courses, 'lecturersForedit'=>$lecturersForEdit, 'course_title'=>$course_title]);
     }
 
     public function fetch_lecturers(Request $request){
@@ -97,7 +116,7 @@ class EventController extends Controller
                        ->join('cities', 'cities.id', '=', 'steam_centers.city_id')
                        ->join('courses', 'courses.id', '=', 'events.course_id')
                        ->join('subjects', 'subjects.id', '=', 'courses.subject_id');
-         
+
         if(isset($category)){
             $events = $events->where('subjects.subject', $category);
             $filtered = 't';
@@ -107,7 +126,7 @@ class EventController extends Controller
             $events = $events->where('capacity_left', '>=', $capacity);
             $filtered = 't';
         }
-        
+
         if(isset($city)){
             $events = $events->where('city_name', $city);
             $filtered = 't';
@@ -163,14 +182,14 @@ class EventController extends Controller
             date_default_timezone_set('Europe/Vilnius');
             $today_date = date('Y-m-d', time());
             $time_now = date('H:i:s', time());
-            
+
             $futureReservations1 = $reservations->where('date', '>', $today_date);
             $todayFutureReservations2 = $reservations->where('date', $today_date)->where('start_time', '>', $time_now);
             $reservations = $futureReservations1->merge($todayFutureReservations2);
         }
 
         //$reservations = Reservation::whereIn('event_id', $events->pluck('events.id'));
-        
+
         $count = $reservations->count()/2;
         if($count == 0.5){
             $count = 2;
@@ -178,7 +197,7 @@ class EventController extends Controller
 
         if($events->count()>0){
             $lecturers = LecturerHasEvent::all()->whereIn('event_id', $events->pluck('events.id'))->groupBy('event_id')->collect();
-            
+
         } else {
             $lecturers = $events;
         }
@@ -200,7 +219,7 @@ class EventController extends Controller
                        ->orWhere('description', 'like', '%'.$query.'%');
 
         $reservations = Reservation::whereIn('event_id', $events->pluck('events.id'))->get();
-        
+
         $count = $reservations->count()/2;
         if($count == 0.5){
             $count = 2;
@@ -213,22 +232,22 @@ class EventController extends Controller
 
         $lecturersForEdit = Lecturer::all();
         $courses = Course::all();
-        
+
         return view('paskaitos', ['events'=>$events, 'count'=>$count, 'lecturers'=>$lecturers, 'reservations'=>$reservations, 'subjects'=>$subjects, 'cities'=>$cities, 'courses'=>$courses, 'lecturersForEdit'=>$lecturersForEdit]);
     }
 
     public function insert(Request $request){
 
-    
+
         $teacher=Teacher::all()->where('user_id','=',\Auth::user()->id)->first()->id;
         $capacity = Event::select('capacity_left')->where(['id'=>$request->event_id])->first();
-        
-        
-        
+
+
+
         $event_ids=EventHasTeacher::all()->where('teacher_id',$teacher)->pluck('event_id');
         $events = Event::all()->whereIn('id',$event_ids)->collect();
         $reservations = Reservation::select('date','start_time','end_time')->whereIn('event_id',$event_ids)->get();
-        $reservationSelectedEventDate = Reservation::select('date','start_time','end_time')->where('event_id',$request->event_id)->first(); 
+        $reservationSelectedEventDate = Reservation::select('date','start_time','end_time')->where('event_id',$request->event_id)->first();
         for($x = 0; $x<sizeof($reservations);$x++){
             if($reservations[$x]==$reservationSelectedEventDate){
                 return \redirect()->back()->with('message','Jūs šiuo metu jau užimtas!');
@@ -247,9 +266,9 @@ class EventController extends Controller
                                                         'capacity_left'=>$subcapacity
                                                     ]);
          }catch(\Illuminate\Database\QueryException $e){
-                return \redirect()->back()->with('message','Jūs jau užsiregistravę į šią paskaitą!');         
+                return \redirect()->back()->with('message','Jūs jau užsiregistravę į šią paskaitą!');
         }
-        
+
 
         return redirect()->back()->with('message', 'Jūs sėkmingai užsiregistravote į paskaitą');
     }
@@ -302,7 +321,7 @@ class EventController extends Controller
             $start_time = $arr[0];
             $end_time = $arr[1];
         } else {
-            return redirect()->route('Paskaitos')->with('dangerstatus','Paskaita nebuvo redaguota. Turite pasirinkti bent vieną dėstytoją!');  
+            return redirect()->route('Paskaitos')->with('dangerstatus','Paskaita nebuvo redaguota. Turite pasirinkti bent vieną dėstytoją!');
         }
 
         Reservation::where('id', $request->edited_id)->update([
@@ -314,7 +333,7 @@ class EventController extends Controller
 
         Event::where('id', $event_id)->update($data);
 
-        return redirect()->route('Paskaitos')->with('status','Paskaita sėkmingai redaguota.');  
+        return redirect()->route('Paskaitos')->with('status','Paskaita sėkmingai redaguota.');
     }
 
     public function destroy($id)
@@ -323,7 +342,7 @@ class EventController extends Controller
         LecturerHasEvent::where('event_id', $id)->delete();
         Reservation::where('event_id', $id)->delete();
         Event::where('id', $id)->delete();
-        
-        return redirect()->route('Paskaitos')->with('status','Paskaita sėkmingai ištrinta.');  
+
+        return redirect()->route('Paskaitos')->with('status','Paskaita sėkmingai ištrinta.');
     }
 }

@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Course;
+use Illuminate\Support\Facades\Redirect;
 
 class CourseController extends Controller
 {
@@ -22,7 +23,7 @@ class CourseController extends Controller
         $this->middleware('auth');
     }
 
-    public function GetCourses(){
+    public function get_courses(){
         $courses = Course::all();
 
         if(\Auth::user()->isRole() === 'paskaitu_lektorius'){
@@ -37,39 +38,15 @@ class CourseController extends Controller
 
     public function index()
     {
-        if(\Auth::user()->isRole() === 'admin' || \Auth::user()->isRole() === 'paskaitu_lektorius'){
-            $courses = $this->GetCourses();
-            return view('kursai',['courses'=>$courses]);
-        }else{
-            return view('/about');
-        }
+        $lecturers = LecturerHasCourse::all()->groupBy('course_id')->collect();
+        $courses = $this->get_courses();
+        return view('kursai',['courses'=>$courses, 'lecturers'=>$lecturers]);
+
     }
 
     public function index_reservations(Request $request){
-        date_default_timezone_set('Europe/Vilnius');
-        $today_date = date('Y-m-d', time());
-        $time_now = date('H:i:s', time());
+        $course_id = intval(($request->course_id)[0]);
 
-        $course_id = $request->course_id;
-
-        $event_ids = Event::all()->where('course_id', '=', $course_id)->pluck('id');
-
-        //$reservations = Reservation::all()->whereIn('event_id', $event_ids);
-        $reservations = Reservation::all();
-
-        $futureReservations1 = $reservations->where('date', '>', $today_date);
-        $todayFutureReservations2 = $reservations->where('date', $today_date)->where('start_time', '>', $time_now);
-        $reservations = $futureReservations1->merge($todayFutureReservations2);
-
-        $lecturers = LecturerHasEvent::all()->groupBy('event_id')->collect();
-        $events = Event::all();
-
-        $subjects = Subject::all();
-        $cities = City::all();
-
-        $lecturersForEdit = Lecturer::all();
-        $courses = Course::all();
-
-        return view('paskaitos', ['events'=>$events, 'lecturers'=>$lecturers, 'reservations'=>$reservations, 'subjects'=>$subjects, 'cities'=>$cities, 'courses'=>$courses, 'lecturersForedit'=>$lecturersForEdit]);
+        return Redirect::route('eventcontroller.course_events', ['course_id'=>$course_id])->with(['message'=>'Matote pasirinkto kurso paskaitas']);
     }
 }

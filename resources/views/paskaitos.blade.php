@@ -33,7 +33,16 @@
     <link href="/css/win.css" rel="stylesheet">
 @endsection
 @section('content')
-    @include('layouts.headers.cards')
+    @if($course_title == null)
+        @include('users.partials.header', ['title' => __('Paskaitos'),
+             'description' => __("Čia matote visas STEAM centrų paskaitas. Į jas galite registruotis paspaudę - 'Registruotis', arba skaityti daugiau, paspaudę ant prisegto failo.")])
+    @elseif($course_title == "neegzistuoja")
+        @include('users.partials.header', ['title' => __('Paskaitos'),
+             'description' => __("Toks kursas neegzistuoja.")])
+    @else
+        @include('users.partials.header', ['title' => __('Paskaitos'),
+             'description' => __("Čia matote \"". $course_title ."\" kurso paskaitas. Į jas galite registruotis paspaudę - 'Registruotis', arba skaityti daugiau, paspaudę ant prisegto failo.")])
+    @endif
     @if (session()->has('status'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         {{ session('status') }}
@@ -107,34 +116,34 @@
       <div class="row">
 
         <div class="col">
-          <div class="card flex-row mb-3" id="{{ $reservation->event->id }}">
+          <div class="card flex-row mb-3  border shadow" id="{{ $reservation->event->id }}">
             @if(strlen($reservation->event->description) > 118)
-                <img class="border-0 bg-white rounded-left" width="220" height="211" src="argon/img/brand/steam1-lectures.png" alt="">
+                <img class="border-0 bg-white rounded-left" width="220" height="211" src="{{ asset('argon/img/brand/steam1-lectures.png') }}" alt="">
             @else
-                <img class="border-0 bg-white rounded-left" width="216" height="183" src="argon/img/brand/steam1-lectures.png" alt="">
+                <img class="border-0 bg-white rounded-left" width="216" height="183" src="{{ asset('argon/img/brand/steam1-lectures.png') }}" alt="">
             @endif
             <div class="w-100 mb-0 pb-0">
-              <div class="card-header p-0 m-0  win-light-blue">
+              <div class="card-header p-0 m-0  bg-white">
                 <h2 class="ml-3 pb-0 m-0">{{ $reservation->event->name }}</h2>
                 <div class="ml-3 mb-1 row">
-                    <div class="p-0 pl-1 pr-1 bg-primary rounded">
+                    <div class="p-0 pl-1 pr-1 bg-darker rounded">
                         <h6 class="text-white text-center mb-0">{{ $reservation->event->course->course_title }}</h6>
                     </div>
                 </div>
               </div>
-              <div class="card-body p-0 win-light-blue">
+              <div class="card-body p-0 bg-white">
                 <div class="row ml-1">
-                  <img class="icon-sm pt-3" src="argon/img/icons/common/place.svg" alt="">
+                  <img class="icon-sm pt-3" src="{{ asset('argon/img/icons/common/place.svg') }}" alt="">
                   <h5 class="pt-3 pr-2">{{ $reservation->room->steam->city->city_name }}, {{ $reservation->room->steam->address }}</h5>
-                  <img class="icon-sm pt-3" src="argon/img/icons/common/clock.svg" alt="">
+                  <img class="icon-sm pt-3" src="{{ asset('argon/img/icons/common/clock.svg') }}" alt="">
                   <h5 class="pt-3 pr-2">{{ $reservation->date }}, {{ substr($reservation->start_time, 0, 5) }} - {{ substr($reservation->end_time, 0, 5) }}</h5>
-                  <img class="icon-sm pt-3" src="argon/img/icons/common/user.svg" alt="">
+                  <img class="icon-sm pt-3" src="{{ asset('argon/img/icons/common/user.svg') }}" alt="">
                   @if($reservation->event->capacity_left > 0)
                       <h5 class="pt-3 pr-2">{{ $reservation->event->capacity_left }}/{{ $reservation->event->max_capacity }}</h5>
                   @else
                       <h5 class="pt-3 pr-2 text-red">Vietų nėra</h5>
                   @endif
-                  <img class="icon-sm pt-3" src="argon/img/icons/common/book.svg" alt="">
+                  <img class="icon-sm pt-3" src="{{ asset('argon/img/icons/common/book.svg') }}" alt="">
                   <h5 class="pt-3">{{ $reservation->event->course->subject->subject }}</h5>
                 </div>
                 <div class="ml-3">
@@ -142,13 +151,13 @@
                 </div>
                 <div class="row mt--3 p-0 m-0" id="lecturers">
                   @foreach($lecturers[$reservation->event->id] as $lecturer)
-                    <button class="p-0 shadow--hover ml-3 mb-1 pl-1 pr-1 bg-primary rounded border-0">
+                    <button class="p-0 shadow--hover ml-3 mb-1 pl-1 pr-1 bg-darker rounded border-0">
                       <h6 class="text-white text-center mb-0">{{ $lecturer->lecturer->user->firstname }} {{ $lecturer->lecturer->user->lastname }}</h6>
                     </button>
                   @endforeach
                 </div>
               </div>
-              <div class="card-footer win-light-blue pb-0 pt-0 mb-0">
+              <div class="card-footer bg-white pb-0 pt-0 mb-0">
                 <div class="row justify-content-between mb--2 p-0">
                   <div class="flex-column mt-1">
                   @if(isset($reservation->event->file_id))
