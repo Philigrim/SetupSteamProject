@@ -5,6 +5,8 @@ namespace Illuminate\Foundation\Auth;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\City;
+use App\Subject;
 
 trait RegistersUsers
 {
@@ -17,7 +19,9 @@ trait RegistersUsers
      */
     public function showRegistrationForm()
     {
-        return view('auth.register');
+        $cities = City::all();
+        $subjects = Subject::all();
+        return view('auth.register',['cities'=>$cities,'subjects'=>$subjects]);
     }
 
     /**
