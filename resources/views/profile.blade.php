@@ -4,7 +4,7 @@
     @include('users.partials.header', [
         'title' => __('Sveiki, ') . auth()->user()->firstname . ',',
         'description' => __('Tai - jūsų profilis. Čia galite matyti informaciją apie save ir ją atnaujinti/keisti.'),
-        'class' => 'col-lg-7'
+        'class' => 'col-lg-14'
     ])
 
     <div class="container-fluid mt--7">
