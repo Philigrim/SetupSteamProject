@@ -392,6 +392,8 @@
                 }
             });
         })
+
+        
 </script>
 
 @endsection
