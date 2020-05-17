@@ -33,10 +33,31 @@
     <link href="/css/win.css" rel="stylesheet">
 @endsection
 @section('content')
-    @include('layouts.headers.cards')
-    @if (session('status'))
+    
+    @if(isset($course_title))
+    @if($course_title == "neegzistuoja")
+        @include('users.partials.header', ['title' => __('Paskaitos'),
+             'description' => __("Toks kursas neegzistuoja.")])
+    @else
+        @include('users.partials.header', ['title' => __('Paskaitos'),
+             'description' => __("Čia matote \"". $course_title ."\" kurso paskaitas. Į jas galite registruotis paspaudę - 'Registruotis', arba skaityti daugiau, paspaudę ant prisegto failo.")])
+    @endif
+    @else
+        @include('users.partials.header', ['title' => __('Paskaitos'),
+             'description' => __("Čia matote visas STEAM centrų paskaitas. Į jas galite registruotis paspaudę - 'Registruotis', arba skaityti daugiau, paspaudę ant prisegto failo.")])
+    @endif
+
+    @if (session()->has('status'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         {{ session('status') }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    @endif
+    @if (session()->has('dangerstatus'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ session('dangerstatus') }}
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
@@ -99,34 +120,34 @@
       <div class="row">
 
         <div class="col">
-          <div class="card flex-row mb-3" id="{{ $reservation->event->id }}">
+          <div class="card flex-row mb-3  border shadow" id="{{ $reservation->event->id }}">
             @if(strlen($reservation->event->description) > 118)
-                <img class="border-0 bg-white rounded-left" width="220" height="211" src="argon/img/brand/steam1-lectures.png" alt="">
+                <img class="border-0 bg-white rounded-left" width="220" height="211" src="{{ asset('argon/img/brand/steam1-lectures.png') }}" alt="">
             @else
-                <img class="border-0 bg-white rounded-left" width="216" height="183" src="argon/img/brand/steam1-lectures.png" alt="">
+                <img class="border-0 bg-white rounded-left" width="216" height="183" src="{{ asset('argon/img/brand/steam1-lectures.png') }}" alt="">
             @endif
             <div class="w-100 mb-0 pb-0">
-              <div class="card-header p-0 m-0  win-light-blue">
+              <div class="card-header p-0 m-0  bg-white">
                 <h2 class="ml-3 pb-0 m-0">{{ $reservation->event->name }}</h2>
                 <div class="ml-3 mb-1 row">
-                    <div class="p-0 pl-1 pr-1 bg-primary rounded">
+                    <div class="p-0 pl-1 pr-1 bg-darker rounded">
                         <h6 class="text-white text-center mb-0">{{ $reservation->event->course->course_title }}</h6>
                     </div>
                 </div>
               </div>
-              <div class="card-body p-0 win-light-blue">
+              <div class="card-body p-0 bg-white">
                 <div class="row ml-1">
-                  <img class="icon-sm pt-3" src="argon/img/icons/common/place.svg" alt="">
+                  <img class="icon-sm pt-3" src="{{ asset('argon/img/icons/common/place.svg') }}" alt="">
                   <h5 class="pt-3 pr-2">{{ $reservation->room->steam->city->city_name }}, {{ $reservation->room->steam->address }}</h5>
-                  <img class="icon-sm pt-3" src="argon/img/icons/common/clock.svg" alt="">
+                  <img class="icon-sm pt-3" src="{{ asset('argon/img/icons/common/clock.svg') }}" alt="">
                   <h5 class="pt-3 pr-2">{{ $reservation->date }}, {{ substr($reservation->start_time, 0, 5) }} - {{ substr($reservation->end_time, 0, 5) }}</h5>
-                  <img class="icon-sm pt-3" src="argon/img/icons/common/user.svg" alt="">
+                  <img class="icon-sm pt-3" src="{{ asset('argon/img/icons/common/user.svg') }}" alt="">
                   @if($reservation->event->capacity_left > 0)
-                      <h5 class="pt-3 pr-2">{{ $reservation->event->capacity_left }}/{{ $reservation->event->max_capacity }}</h5>
+                      <h5 class="pt-3 pr-2">Liko {{ $reservation->event->capacity_left }} iš {{ $reservation->event->max_capacity }}</h5>
                   @else
                       <h5 class="pt-3 pr-2 text-red">Vietų nėra</h5>
                   @endif
-                  <img class="icon-sm pt-3" src="argon/img/icons/common/book.svg" alt="">
+                  <img class="icon-sm pt-3" src="{{ asset('argon/img/icons/common/book.svg') }}" alt="">
                   <h5 class="pt-3">{{ $reservation->event->course->subject->subject }}</h5>
                 </div>
                 <div class="ml-3">
@@ -134,13 +155,13 @@
                 </div>
                 <div class="row mt--3 p-0 m-0" id="lecturers">
                   @foreach($lecturers[$reservation->event->id] as $lecturer)
-                    <button class="p-0 shadow--hover ml-3 mb-1 pl-1 pr-1 bg-primary rounded border-0">
+                    <button class="p-0 shadow--hover ml-3 mb-1 pl-1 pr-1 bg-darker rounded border-0">
                       <h6 class="text-white text-center mb-0">{{ $lecturer->lecturer->user->firstname }} {{ $lecturer->lecturer->user->lastname }}</h6>
                     </button>
                   @endforeach
                 </div>
               </div>
-              <div class="card-footer win-light-blue pb-0 pt-0 mb-0">
+              <div class="card-footer bg-white pb-0 pt-0 mb-0">
                 <div class="row justify-content-between mb--2 p-0">
                   <div class="flex-column mt-1">
                   @if(isset($reservation->event->file_id))
@@ -162,10 +183,10 @@
             </div>
           </div>
         </div>
-        
+
         @if(Auth::user()->isRole()=="admin")
         <div class="col-" style="position: absolute; margin-left:1140px;">
-          @if(date($reservation->date) < date('Y-m-d'))
+          @if(date($reservation->date) < date('Y-m-d') || (date($reservation->date) == date('Y-m-d') && date($reservation->start_time) > date('h:i:s')))
             <button class="btn btn-dark" style="width: 130px; opacity: 1;" disabled>Praejęs</button>
           @elseif($reservation->event->capacity_left == 0)
             <button class="btn btn-primary" style="width: 130px" disabled>No Capacity</button>
@@ -175,11 +196,15 @@
             <button class="btn btn-warning" style="width: 130px; opacity: 1;" disabled>Iškeltas</button>
           @endif
           <br>
-          <button class="btn btn-success mt-2 show-edit-event" style="width: 95%" data-toggle = "modal" data-target = "#editEventModal"
-            data-id="{{ $reservation->id }}" data-name="{{ $reservation->event->name }}" data-course_title="{{ $reservation->event->course->course_title }}" data-subject_title="{{ $reservation->event->course->subject->subject }}" data-city="{{ $reservation->room->steam->city->city_name }}" data-steam_center="{{ $reservation->room->steam->steam_name }}" data-room="{{ $reservation->room->room_number }}({{$reservation->room->capacity }}) {{ $reservation->room->subject->subject }}" data-reservation_date="{{ $reservation->date }}" data-reservation_time="{{ substr($reservation->start_time, 0, 5) }}-{{ substr($reservation->end_time, 0, 5) }}" data-event_capacity="{{ $reservation->event->max_capacity }}" data-event_description="{{ $reservation->event->description }}" @if(isset($reservation->event->file->name)) data-event_file={{ $reservation->event->file->name }} @endif">
+          <button class="btn btn-success mt-2 show-edit-event" style="width: 95%" data-toggle = "modal" data-target = "#editEventModal" data-id="{{ $reservation->id }}"
+            data-name="{{ $reservation->event->name }}" data-course_title="{{ $reservation->event->course->course_title }}" data-subject_title="{{ $reservation->event->course->subject->subject }}"
+            data-city="{{ $reservation->room->steam->city->city_name }}" data-steam_center="{{ $reservation->room->steam->steam_name }}" data-room="{{ $reservation->room->room_number }}({{$reservation->room->capacity }}) {{ $reservation->room->subject->subject }}" data-room_id="{{ $reservation->room->id }}"
+            data-reservation_date="{{ $reservation->date }}" data-reservation_time="{{ substr($reservation->start_time, 0, 5) }}-{{ substr($reservation->end_time, 0, 5) }}"
+            data-event_capacity="{{ $reservation->event->max_capacity }}" data-event_capacity_used="{{$reservation->event->max_capacity}}-{{$reservation->event->capacity_left}}" data-event_description="{{ $reservation->event->description }}" @if(isset($reservation->event->file->id)) data-file_name="{{ $reservation->event->file->name }}" @endif
+            data-lecturers="@foreach($lecturers[$reservation->event->id] as $lecturer){{ $lecturer->lecturer->id }};@endforeach">
             Redaguoti
           </button>
-          
+
           <form action="{{ url('/paskaitos', [$reservation->event->id]) }}" method="post">
             <button class="btn btn-danger mt-2" style="width: 95%">Ištrinti</button>
             <input type="hidden" name="_method" value="delete" />
@@ -208,7 +233,7 @@
               <input type="hidden" name="_token" value="{{ csrf_token() }}">
 
               <input type="hidden" id="editing_id" name="edited_id">
-                
+
               <div class="modal-body pt-2">
                 <div class="row d-flex justify-content-start">
 
@@ -231,7 +256,8 @@
 
                 <div class="card bg-secondary shadow" style="position: absolute; margin-left: 900px; margin-top: -68px">
                     <div class="card-header bg-white border-0">
-                        <h2 class="col-12 mb-0">{{ __('Dėstytojai') }}</h2>
+                      <input type="hidden" id="lecturers_was" name="lecturers_was">
+                      <h2 class="col-12 mb-0">{{ __('Dėstytojai') }}</h2>
                     </div>
                     <div class="card-body">
                         <div class="col">
@@ -263,20 +289,23 @@
 
                 <div class="col-md-4">
                   <div class="form-group">
-                    <select class="form-control dropdown-menu-arrow room" name="room_id" id="room_id">
+                    <input type="hidden" id="room_was" name="room_was">
+                    <select class="form-control dropdown-menu-arrow room update-time" name="room_id" id="room_id">
                       <option selected disabled>Kambarys</option>
                     </select>
                   </div>
                 </div>
-                
+
                 <div class="col-md-4">
                   <div class="form-group">
+                    <input type="hidden" id="date_was" name="date_was">
                     <input class=" form-group form-control input-group update-time" name="date" placeholder="Data" id="datepicker" />
                   </div>
                 </div>
 
                 <div class="col-md-4">
                   <div class="form-group">
+                    <input type="hidden" id="time_was" name="time_was">
                     <select name="time" id="time" class="form-control dropdown-menu-arrow">
                     </select>
                   </div>
@@ -284,6 +313,7 @@
 
                 <div class="col-md-4">
                   <div class="form-group">
+                    <input type="hidden" id="edit-capacity_left" name="capacity_left">
                     <input class="form-control input-group" id="edit-capacity" type="number" min="1" name="capacity" value="1" placeholder="Žmonių skaičius">
                   </div>
                 </div>
@@ -377,9 +407,9 @@
                           </div>
         </div> --}}
 <script type="text/javascript">
-  new GijgoDatePicker(document.getElementById('dateOneDay'), { calendarWeeks: true, uiLibrary: 'bootstrap4', format: 'yyyy-mm-dd' });
-  new GijgoDatePicker(document.getElementById('dateFrom'), { calendarWeeks: true, uiLibrary: 'bootstrap4', format: 'yyyy-mm-dd' });
-  new GijgoDatePicker(document.getElementById('dateTill'), { calendarWeeks: true, uiLibrary: 'bootstrap4', format: 'yyyy-mm-dd' });
+  new GijgoDatePicker(document.getElementById('dateOneDay'), {uiLibrary: 'bootstrap4', format: 'yyyy-mm-dd' });
+  new GijgoDatePicker(document.getElementById('dateFrom'), {uiLibrary: 'bootstrap4', format: 'yyyy-mm-dd' });
+  new GijgoDatePicker(document.getElementById('dateTill'), {uiLibrary: 'bootstrap4', format: 'yyyy-mm-dd' });
 
   window.onload=function(){
     //get the divs to show/hide
@@ -432,13 +462,20 @@
               data:{select:select, value:value, _token:_token},
               success:function(result){
                   $('#'+dependent).html(result);
+                  var lecturers = $('#lecturers_was').val();
+                  var lecturers = lecturers.substring(0, lecturers.length-1);
+                  var lecturersArray = lecturers.split(';');
+                  for(var i=0; i<lecturersArray.length; i++){
+                    $("#"+lecturersArray[i]).prop("checked", "checked");
+                  }
               }
           })
       }
   })
+
   $("#file").change(function(){
-$("#file-name").text(this.files[0].name);
-});
+    $("#file-name").text(this.files[0].name);
+  });
 
   $('.dynamic-ccr').change(function update_multi_dropdown(){
       if($(this).val() != ''){
@@ -462,28 +499,36 @@ $("#file-name").text(this.files[0].name);
   $('.room').change(function set_new_max_capacity(){
     var room_value = $('#room_id').val();
     var room_capacity = $('#room_id').find(':selected').data('capacity');
+    $('#room_id').find(':selected').data('capacity');
     $('#edit-capacity').attr("max", room_capacity);
     if(parseInt($('#edit-capacity').val()) > parseInt($('#edit-capacity').attr("max"))){
         $('#edit-capacity').val($('#edit-capacity').attr("max"));
+    }else if($('#edit-capacity').val() < $('#edit-capacity').attr("min")){
+        $('#edit-capacity').val($('#edit-capacity').attr("min"));
     }
   })
 
   $('.update-time').change(function update_time(){
-    if ($("#time option:selected" ).text() == ""){
-      var room_value = $('#room_id').val();
-      var date_value = $('#datepicker').val();
-      if(room_value != null && date_value != ''){
-        var _token = $('input[name="_token').val();
-        $.ajax({
-            async: false,
-            url:"{{ route('createeventcontroller.fetch_time') }}",
-            method: "POST",
-            data:{room_value:room_value, date_value:date_value, _token:_token},
-            success:function(result){
-                $('#time').html(result);
-            }
-        })
-      }
+    var room_value = $('#room_id').val();
+    var date_value = $('#datepicker').val();
+    if(room_value != null && date_value != ''){
+      var _token = $('input[name="_token').val();
+      $.ajax({
+          async: false,
+          url:"{{ route('createeventcontroller.fetch_time') }}",
+          method: "POST",
+          data:{room_value:room_value, date_value:date_value, _token:_token},
+          success:function(result){
+              $('#time').html(result);
+          }
+      })
+
+    var timeWas = $('#time_was').val();
+    if(date_value == $('#date_was').val() && timeWas != "" && room_value==$('#room_was').val()) {
+        $("#time").append(new Option(timeWas, timeWas));
+    }
+      $('#time option').filter(function() { return ($(this).text() == timeWas); }).prop('selected', 'selected');
+      document.querySelector("#time").dispatchEvent(new Event("change"));
     }
   })
 
@@ -514,8 +559,10 @@ $("#file-name").text(this.files[0].name);
   document.getElementById('eventEditingModalForm').setAttribute("action", route);
   $('#editing_name').val($(this).data('name'));
 
+  $('#lecturers_was').val($(this).data('lecturers'));
+
   var course_selected = $(this).data('course_title') + " (" + $(this).data('subject_title') + ")";
-  $('#course_id option').filter(function() { return ($(this).text() == course_selected); }).prop('selected', 'selected'); 
+  $('#course_id option').filter(function() { return ($(this).text() == course_selected); }).prop('selected', 'selected');
   document.querySelector("#course_id").dispatchEvent(new Event("change"));
 
   var city_selected = $(this).data('city')
@@ -523,26 +570,38 @@ $("#file-name").text(this.files[0].name);
   document.querySelector("#city_id").dispatchEvent(new Event("change"));
 
   var steam_center_selected = $(this).data('steam_center');
-  $('#steam_id option').filter(function() { return ($(this).text() == steam_center_selected); }).prop('selected', 'selected'); 
+  $('#steam_id option').filter(function() { return ($(this).text() == steam_center_selected); }).prop('selected', 'selected');
   document.querySelector("#steam_id").dispatchEvent(new Event("change"));
 
   var room_selected = $(this).data('room');
-  $('#room_id option').filter(function() { return ($(this).text() == room_selected); }).prop('selected', 'selected'); 
+  $("#room_was").val($(this).data('room_id'));
+  $('#room_id option').filter(function() { return ($(this).text() == room_selected); }).prop('selected', 'selected');
   document.querySelector("#room_id").dispatchEvent(new Event("change"));
 
+  $("#date_was").val($(this).data('reservation_date'));
   $('#datepicker').val($(this).data('reservation_date'));
   document.querySelector("#datepicker").dispatchEvent(new Event("change"));
 
-  $('#datepicker')[0].options[0].innerHTML = "Laikas: " + $(this).data('reservation_time');
+  var timeWas = $(this).data('reservation_time');
+  $("#time_was").val(timeWas);
+  $("#time").append(new Option(timeWas, timeWas));
+  $('#time option').filter(function() { return ($(this).text() == timeWas); }).prop('selected', 'selected');
   document.querySelector("#time").dispatchEvent(new Event("change"));
 
+  var used = $(this).data('event_capacity_used');
+  var usedArray = used.split('-');
+  var used = usedArray[0]-usedArray[1];
+  $('#edit-capacity_left').val(used);
+  $('#edit-capacity').attr("min", used);
   $('#edit-capacity').val($(this).data('event_capacity'));
   document.querySelector("#edit-capacity").dispatchEvent(new Event("change"));
-  
+
   $('#description').val($(this).data('event_description'));
-  $('#file-name').text($(this).data('event_file'));
+  $("#file-name").text($(this).data('file_name'));
   })
 </script>
+
+
 @endif
 
 @endsection

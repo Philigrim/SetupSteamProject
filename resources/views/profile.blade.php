@@ -3,8 +3,8 @@
 @section('content')
     @include('users.partials.header', [
         'title' => __('Sveiki, ') . auth()->user()->firstname . ',',
-        'description' => __('This is your profile page. You can see the progress you\'ve made with your work and manage your projects or assigned tasks'),
-        'class' => 'col-lg-7'
+        'description' => __('Tai - jūsų profilis. Čia galite matyti informaciją apie save ir ją atnaujinti/keisti.'),
+        'class' => 'col-lg-14'
     ])
 
     <div class="container-fluid mt--7">
@@ -180,7 +180,8 @@
                         </div>
                         <div class="text-center">
                             <h3>
-                                {{ auth()->user()->firstname }} {{ auth()->user()->lastname }}<span class="font-weight-light">, 27</span>
+                                {{ auth()->user()->firstname }} {{ auth()->user()->lastname }},
+                                <span onkeypress="return (this.innerText.length < 3)" class="font-weight-light">27</span>
                             </h3>
                             <div class="h5 font-weight-300">
                                 <i class="ni location_pin mr-2"></i>{{ __('Bucharest, Romania') }}

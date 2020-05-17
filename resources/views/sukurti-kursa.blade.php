@@ -27,11 +27,11 @@
                 <div class="card-body">
                     @if(count($errors))
 			<div class="alert alert-danger">
-				
+
 					@foreach($errors->all() as $error)
 					<li>{{ $error }}</li>
 					@endforeach
-				
+
 			</div>
 		@endif
                     <form action = "/sukurti-kursa" method="post">
@@ -40,7 +40,6 @@
                         <div class="col-md-12  ">
                             <div class="form-group">
                                 <input class="form-control" placeholder="Kurso pavadinimas" value="{{old('course_title')}}" name="course_title" >
-                             
                             </div>
                 </div>
                         </div>
@@ -48,21 +47,18 @@
                             <div class="col-md-4">
                                 <div class="form-group{{ $errors->has('course_title') ? ' has-danger' : '' }}">
                                 <div class="form-group">
-                                    <select onload="update_dropdown()" class="form-control dropdown-menu-arrow dynamic" name="subject_id" id ="subject_id" data-dependent="lecturer_id">
+                                    <select class="form-control dropdown-menu-arrow dynamic" name="subject_id" id ="subject_id" data-dependent="lecturer_id">
                                         <option value="" selected disabled>{{ "Dalykai" }}</option>
                                         @foreach($subjects as $subject)
                                             <option value="{!!$subject->id !!}" @if (old('subject_id')==$subject->id) selected="selected"@endif>{!! $subject->subject !!}</option>
                                         @endforeach
                                     </select>
-                                    
                                 </div>
                             </div>
-
                             </div>
                             <div class="col-md-6">
-                                
                                 <div class="form-group">
-                                    <table class="table table-sm align-items-center table-scroll" id="lecturer_id">
+                                    <table onload="update_dropdown()" class="table table-sm align-items-center table-scroll" id="lecturer_id">
                                     </table>
                                 </div>
                             </div>
@@ -101,7 +97,7 @@
 
     <script type="text/javascript">
         $('.dynamic').change(function update_dropdown(){
-            if($(this).val() != ''){
+            if($('#subject_id').val() != ''){
                 var select = $(this).attr("id");
                 var value = $(this).val();
                 var dependent = $(this).data('dependent');

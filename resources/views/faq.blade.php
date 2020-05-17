@@ -178,55 +178,6 @@
                     class="show-edit-faq btn btn-success ml-3 mb-3" data-toggle = "modal" data-target = "#editfaqModal">
                     Redaguoti
                 </button>
-            
-                <!-- FAQ Editing Modal -->
-                <div class="modal fade" id="editfaqModal" tabindex="-1" role="dialog" aria-labelledby = "editfaqLabel" aria-hidden = "true">
-                    <div class="modal-dialog modal-lg">
-                        <div class = "modal-content">
-                            <div class = "modal-header pb-3">
-                                <h2 class = "modal-title" id="editfaqLabel">Klausimo ir atsakymo redagavimas</h2>
-                                <button type = "button" class = "close" data-dismiss = "modal" aria-hidden = "true">&times;</button>
-                            </div>
-
-                            <form action="{{ route('faq.update', [$question_and_answer->id]) }}" method="post">
-                            <input type="hidden" name="_method" value="patch" />
-                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-
-                            <input type="hidden" id="editing_id" name="edited_id" value="{{ $question_and_answer->id }}">
-                            
-  
-                            <div class="modal-body pt-2 pb-0">
-                                <div class="border-top mt-2 mb-2"></div>
-
-                                <div>
-                                    <span class="ml-2">K:</span>
-                                    <input style="width: 95%" placeholder="Įveskite klausimą" id="editing_question" name="edited_question" required
-                                    oninvalid="this.setCustomValidity('Klausimo langelis negali būti tuščias.')">
-                                </div>
-
-                                <div class="border-top mt-2 mb-2"></div>
-
-                                <div>
-                                    <span class="ml-2">A:</span>
-                                    <input style="width: 95%" placeholder="Įveskite atsakymą" id="editing_answer" name="edited_answer" required
-                                    oninvalid="this.setCustomValidity('Atsakymo langelis negali būti tuščias.')">
-                                </div>
-
-                                <div class="border-top mt-2 mb-2"></div>
-                            </div>
-
-                            <div class="modal-footer">
-                                <button type = "button" class = "btn btn-danger" data-dismiss = "modal">
-                                    Atšaukti
-                                </button>
-                                <button type = "submit" class = "btn btn-success">
-                                    {{ __('Patvirtinti') }}
-                                </button>
-                            </div>
-                            </form>
-                        </div><!-- /.modal-content -->
-                    </div><!-- /.modal-dialog -->
-                </div>
                 
                 <form action="{{ url('/faq', [$question_and_answer->id]) }}" method="post">
                     <Button class="btn btn-danger ml-2" type="submit">Ištrinti</Button>
@@ -252,7 +203,57 @@
             </div>
         </div>
         @endforeach
+
+        <!-- FAQ Editing Modal -->
+        <div class="modal fade" id="editfaqModal" tabindex="-1" role="dialog" aria-labelledby = "editfaqLabel" aria-hidden = "true">
+            <div class="modal-dialog modal-lg">
+                <div class = "modal-content">
+                    <div class = "modal-header pb-3">
+                        <h2 class = "modal-title" id="editfaqLabel">Klausimo ir atsakymo redagavimas</h2>
+                        <button type = "button" class = "close" data-dismiss = "modal" aria-hidden = "true">&times;</button>
+                    </div>
+
+                    <form id="faqEditingModalForm"  method="post">
+                    <input type="hidden" name="_method" value="patch" />
+                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+                    <input type="hidden" id="editing_id" name="edited_id">
+                    
+
+                    <div class="modal-body pt-2 pb-0">
+                        <div class="border-top mt-2 mb-2"></div>
+
+                        <div>
+                            <span class="ml-2">K:</span>
+                            <input style="width: 95%" placeholder="Įveskite klausimą" id="editing_question" name="edited_question" required
+                            oninvalid="this.setCustomValidity('Klausimo langelis negali būti tuščias.')">
+                        </div>
+
+                        <div class="border-top mt-2 mb-2"></div>
+
+                        <div>
+                            <span class="ml-2">A:</span>
+                            <input style="width: 95%" placeholder="Įveskite atsakymą" id="editing_answer" name="edited_answer" required
+                            oninvalid="this.setCustomValidity('Atsakymo langelis negali būti tuščias.')">
+                        </div>
+
+                        <div class="border-top mt-2 mb-2"></div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type = "button" class = "btn btn-danger" data-dismiss = "modal">
+                            Atšaukti
+                        </button>
+                        <button type = "submit" class = "btn btn-success">
+                            {{ __('Patvirtinti') }}
+                        </button>
+                    </div>
+                    </form>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
         </div>
+
+    </div>
     </div>
 
     <!-- Divider-->
@@ -289,7 +290,7 @@
                         <img class="icon-sm pt-3" src="argon/img/icons/common/clock.svg" alt="">
                         <h5 class="pt-3 pr-2">{{ $reservation->date }}, {{ substr($reservation->start_time, 0, 5) }} - {{ substr($reservation->end_time, 0, 5) }}</h5>
                         <img class="icon-sm pt-3" src="argon/img/icons/common/user.svg" alt="">
-                        <h5 class="pt-3 pr-2">{{ $reservation->event->max_capacity - $reservation->event->capacity_left }}/{{ $reservation->event->max_capacity }}</h5>
+                        <h5 class="pt-3 pr-2">Dalyviai: {{ $reservation->event->max_capacity - $reservation->event->capacity_left }} iš {{ $reservation->event->max_capacity }}</h5>
                         <img class="icon-sm pt-3" src="argon/img/icons/common/book.svg" alt="">
                         <h5 class="pt-3">{{ $reservation->event->course->subject->subject }}</h5>
                     </div>
@@ -369,6 +370,9 @@
 {{--Editing modal script--}}
 <script type="text/javascript">
     $(document).on('click', '.show-edit-faq', function() {
+    var route = '{{ route("faq.update", ":id") }}';
+    route = route.replace(':id', $(this).data('id'));
+    document.getElementById('faqEditingModalForm').setAttribute("action", route);
     $('#editing_id').val($(this).data('id'));
     $('#editing_question').val($(this).data('question'));
     $('#editing_answer').val($(this).data('answer'));

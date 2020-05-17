@@ -75,10 +75,8 @@ class AnnouncementsController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('search');
-        $announcements = Announcement::where('title', 'like', '%'.$query.'%')
-                                     ->orWhere('author', 'like', '%'.$query.'%')
-                                     ->orWhere('text', 'like', '%'.$query.'%')
-                                     ->orWhere('created_at', 'like', '%'.$query.'%')
+        $announcements = Announcement::where('title', 'ilike', '%'.$query.'%')
+                                     ->orWhere('text', 'ilike', '%'.$query.'%')
                                      ->orderBy('id', 'desc')
                                      ->get();
 
@@ -93,7 +91,7 @@ class AnnouncementsController extends Controller
 
     public function store(Request $request)
     {
-        $author_id = Auth::user()->id;
+        $author_id = \Auth::user()->id;
         $author = $request->input('announcement_author');
         $title = $request->input('announcement_title');
         $text = $request->input('announcement_text');

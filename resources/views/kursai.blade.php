@@ -1,31 +1,71 @@
 @extends('layouts.app', ['title' => __('Kursai')])
-
+@section('additional_header_content')
+    {{-- JQUERY --}}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+@endsection
 @section('content')
-    @include('layouts.headers.cards')
+    @include('users.partials.header', ['title' => __('Kursai'),
+             'description' => __("Čia matote vedamus kursus STEAM centruose. Paspaudę ant 'Paskaitos',
+             matysite pasirinkto kurso paskaitas.")])
+
     <div class="container">
+
+    <!-- Search form -->
+    <form action="{{ route('kursai.search') }}" method="get">
+        <div class="input-group border border-primary rounded mt-3">
+            <input class="form-control border border-none" name="search" type="text" @if(isset($search)) value="{{ $search }}" @endif placeholder="Raskite norimą kursą">
+            <select style="width: 15%; background-color:white;" name="category">
+                <option value="" @if(!isset($category_value)) selected @endif>{{ "Visos kategorijos" }}</option>
+                @foreach($subjects as $subject)
+                <option @if(isset($category) && $subject->id==$category) selected @endif value="{{ $subject->id }}">{{ $subject->subject }}</option>
+                @endforeach
+            </select>
+            <div class="input-group-append">
+                <button class="btn btn-primary"><i class="fa fa-search"></i></button>
+            </div>
+        </div>
+    </form>
+
     @foreach ($courses as $course)
         <div class="row">
             <div class="col">
-                <div class="card card-stats mt-3">
-                    <div class="card-body border border-primary rounded">
+                <div class="card border shadow rounded card-stats mt-3">
+                    <div class="card-header text-center p-1">
+                        <h1 class="p-0 m-0">{{ $course->course_title }}</h1>
+                    </div>
+                    <div class="card-body">
+                        <div class="p-1 pl-1 pr-1 mb-1 bg-darker rounded col-1">
+                            <h6 class="text-white text-center mb-0">{{ $course->subject->subject }}</h6>
+                        </div>
+                        <div class="">
+                            <p class="">{{ $course->description }}</p>
+                        </div>
+                        <div class="row p-0 m-0" id="lecturers">
+                            @foreach($lecturers[$course->id] as $lecturer)
+                                <button class="p-1 shadow--hover mr-1 mb-1 pl-2 pr-2 bg-darker rounded border-0">
+                                    <h6 class="text-white text-center mb-0">{{ $lecturer->lecturer->user->firstname }} {{ $lecturer->lecturer->user->lastname }}</h6>
+                                </button>
+                            @endforeach
+                        </div>
+                        @if(Auth::user()->isRole()=="admin" || Auth::user()->isRole()=="paskaitu_lektorius")
                         <div class="col">
-                            <h1>
-                                <span class="h2 font-weight-bold mb-0 d-flex justify-content-center"><td>{{ $course->course_title }}</td></span>
-                            </h1>
-                        </div>
-
-                        <div class="d-flex flex-r ml-2 mt-3 mt">
-                            <div class="mb-0 text-muted text-sm ">
-                                <h3>Aprašymas:</h3>
+                            <div class="row justify-content-center">
+                                <h4>Papildoma informacija administratoriams/dėstytojams</h4>
                             </div>
-                            <div class="ml-3">{{ $course->description }}</div>
-                        </div>
-                        <div class="d-flex flex-r ml-2 mt-3 mt">
-                            <div class="mb-0 text-muted text-sm ">
-                                <h3>Papildoma info:</h3>
+                            <div class="row">
+                                <p>{{ $course->comments }}</p>
                             </div>
-                            <div class="ml-3">{{ $course->comments }}</div>
                         </div>
+                        @endif
+                    </div>
+                    <div class="card-footer p-2 text-center">
+                        <form action = "{{route('coursecontroller.index_reservations')}}" method="post">
+                            @csrf
+                            <div class="form-group p-0 m-0 col-2 center">
+                                <button type="submit" href="#" class="form-control btn-primary btn" name="course_id" value="{{ $course->id }}">Paskaitos</button>
+                            </div>
+                            {{ csrf_field() }}
+                        </form>
                     </div>
                 </div>
             </div>
@@ -37,4 +77,22 @@
             @endif
         </div>
     @endforeach
+        <script>
+            {{--$(document).on('click', '.show_lectures', function(){--}}
+            {{--    var course_id = $(this).val();--}}
+            {{--    var _token = $('input[name="_token').val();--}}
+            {{--    $.ajax({--}}
+            {{--        url:"{{ route('coursecontroller.index_reservations') }}",--}}
+            {{--        method: "POST",--}}
+            {{--        data:{course_id:course_id, _token:_token},--}}
+            {{--        success:function(result){--}}
+
+            {{--        },--}}
+            {{--        error:function(x, e){--}}
+            {{--            alert(x);--}}
+            {{--            alert(e);--}}
+            {{--        }--}}
+            {{--    });--}}
+            {{--});--}}
+        </script>
 @endsection

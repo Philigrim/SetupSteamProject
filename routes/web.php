@@ -41,17 +41,24 @@ Route::delete('/faq/{faq_id}', 'FAQController@destroyById')->name('faq.destroy')
 Route::delete('/faq/{question}', 'FAQController@destroyByQ')->name('q.destroy');
 });
 
-Route::get('/kursai','CourseController@index')->name('Kursai');
+Route::group(['prefix' => 'kursai'], function(){
+    Route::get('/','CourseController@index')->name('Kursai');
+    Route::post('/','CourseController@index_reservations')->name('coursecontroller.index_reservations');
+});
+
+Route::get('/findcourse','CourseController@search')->name('kursai.search');
 
 Route::group(['prefix' => 'paskaitos'], function(){
     Route::get('/','EventController@index')->name('Paskaitos');
     Route::post('/','EventController@insert')->name('eventcontroller.insert');
+    Route::get('{course_id}/promote','EventController@promote')->name('paskaitos.promote');
     Route::get('/promote','EventController@promote')->name('paskaitos.promote');
     Route::post('/fetch_lecturers','EventController@fetch_lecturers')->name('eventcontroller.fetch_lecturers');
     Route::get('/file/download/{id}','EventController@download')->name('downloadFile');
     Route::post('/fetch_selected_lecturers', 'EventController@fetch_selected_lecturers')->name('paskaitos.fetch_selected_lecturers');
     Route::patch('/event/{event_id}', 'EventController@update')->name('paskaitos.update');
     Route::delete('/{event_id}', 'EventController@destroy')->name('paskaitos.destroy');
+    Route::get('/{course_id}','EventController@index')->name('eventcontroller.course_events');
 });
 
 Route::get('/search','EventController@search')->name('events.search');
