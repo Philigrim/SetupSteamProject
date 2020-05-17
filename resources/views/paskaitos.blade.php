@@ -183,8 +183,9 @@
             </div>
           </div>
         </div>
-
+       
         @if(Auth::user()->isRole()=="admin")
+        <!-- Promote-Edit-Delete -->
         <div class="col-" style="position: absolute; margin-left:1140px;">
           @if(date($reservation->date) < date('Y-m-d') || (date($reservation->date) == date('Y-m-d') && date($reservation->start_time) > date('h:i:s')))
             <button class="btn btn-dark" style="width: 130px; opacity: 1;" disabled>Praejęs</button>
