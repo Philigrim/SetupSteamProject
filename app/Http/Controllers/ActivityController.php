@@ -47,8 +47,10 @@ class ActivityController extends Controller
         $pastEvents1 = $reservations->where('date', '<', $date);
         $pastEvents2 = $reservations->where('date', $date)->where('end_time', '<', $time);
         $pastEvents = $pastEvents1->merge($pastEvents2)->sortBy('end_time')->sortBy('date');
+        
 
-        return view('manopaskaitos',['events'=>$events, 'futureEvents'=>$futureEvents, 'pastEvents'=>$pastEvents,'date'=>$date]);
+        $teachers=EventHasTeacher::all()->groupBy('event_id')->collect();
+        return view('manopaskaitos',['events'=>$events,'teachers'=>$teachers, 'futureEvents'=>$futureEvents, 'pastEvents'=>$pastEvents,'date'=>$date]);
     }
 
     public function update(Request $request){

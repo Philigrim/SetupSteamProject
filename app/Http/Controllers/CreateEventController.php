@@ -136,6 +136,7 @@ class CreateEventController extends Controller
             }
 
             $json_file = json_encode($output_values);
+            
             echo $json_file;
         }else{
             $json_file = json_encode($this->return_output_values($date_value, $room_value, $start_times));
