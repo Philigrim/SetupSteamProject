@@ -33,15 +33,15 @@
     </script>
 @endsection
 @section('content')
-    @if($course_title == null)
+    @if($course_title ?? '' == null)
         @include('users.partials.header', ['title' => __('Paskaitos'),
              'description' => __("Čia matote visas STEAM centrų paskaitas. Į jas galite registruotis paspaudę - 'Registruotis', arba skaityti daugiau, paspaudę ant prisegto failo.")])
-    @elseif($course_title == "neegzistuoja")
+    @elseif($course_title ?? '' == "neegzistuoja")
         @include('users.partials.header', ['title' => __('Paskaitos'),
              'description' => __("Toks kursas neegzistuoja.")])
     @else
         @include('users.partials.header', ['title' => __('Paskaitos'),
-             'description' => __("Čia matote \"". $course_title ."\" kurso paskaitas. Į jas galite registruotis paspaudę - 'Registruotis', arba skaityti daugiau, paspaudę ant prisegto failo.")])
+             'description' => __("Čia matote \"". $course_title ?? '' ."\" kurso paskaitas. Į jas galite registruotis paspaudę - 'Registruotis', arba skaityti daugiau, paspaudę ant prisegto failo.")])
     @endif
     @if (session()->has('status'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">

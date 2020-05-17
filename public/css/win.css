@@ -10,3 +10,22 @@
 .win-light-red{
     background-color: var(--win-light-red) !important
 }
+
+label.invalid{
+    color: red;
+    margin-left: 0.3em;
+    text-decoration-style: wavy;
+}
+
+label.valid{
+    color: green;
+    margin-left: 0.3em;
+}
+
+input.invalid, input.success.invalid, select.invalid, select.success.invalid, textarea.invalid, textarea.success.invalid{
+    border-color: red;
+}
+
+input.success, select.success, textarea.success{
+    border-color: green;
+}

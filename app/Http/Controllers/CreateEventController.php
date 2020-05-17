@@ -98,7 +98,7 @@ class CreateEventController extends Controller
             $table_data .= '<tr data-role="row" data-position="1" class="">
                                 <td>
                                     <div class="custom-control custom-control-alternative custom-checkbox">
-                                        <input class="custom-control-input" name="lecturers[]" id="'. $row->lecturer->id .'" value="'. $row->lecturer->id .'" type="checkbox">
+                                        <input class="custom-control-input lecturer" data-msg-required="Pasirinkite bent vieną dėstytoją" name="lecturers[]" id="'. $row->lecturer->id .'" value="'. $row->lecturer->id .'" type="checkbox">
                                         <label class="custom-control-label" for="'. $row->lecturer->id .'">
                                             <span class="text-muted">'. $row->lecturer->user->firstname . ' ' . $row->lecturer->user->lastname .'</span>
                                         </label>
@@ -162,6 +162,83 @@ class CreateEventController extends Controller
         }
     }
 
+    public function lecturers_available($request, $given_time, $given_date){
+        $lecturer_ids=$request->lecturers;
+        $event_ids=LecturerHasEvent::all()->whereIn('lecturer_id',$lecturer_ids)->pluck('event_id');
+        $reservations = Reservation::select('date','start_time','end_time')->whereIn('event_id',$event_ids)->get();
+
+        $arr = explode("-", $given_time, 2);
+        $start_time = $arr[0];
+        $end_time = $arr[1];
+
+        $naujasEventasTikrinimui =collect(array(
+            'date'=>"$given_date",
+            'start_time'=>"$start_time",
+            'end_time'=>"$end_time"
+        ));
+
+        for($x = 0; $x<sizeof($reservations);$x++){
+            if((string)$reservations[$x]==(string)$naujasEventasTikrinimui){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function create_event($request, $given_capacity){
+        if($request->hasFile('file')){
+            $filename = $request ->file -> getClientOriginalName();
+            $request->file -> storeAs(('public/file'),$filename);
+            $file = File ::create(
+                ['name' =>$filename]
+            );
+            $event = Event::create(['name' => $request->name,
+                'room_id' => $request->room_id,
+                'course_id' => $request->course_id,
+                'description' => $request->description,
+                'capacity_left' => $given_capacity,
+                'max_capacity' => $given_capacity,
+                'is_auto_promoted' => 'f',
+                'is_manual_promoted' => 'f',
+                'file_id' => $file->id]);
+        }
+        else {
+            $event = Event::create(['name' => $request->name,
+                'room_id' => $request->room_id,
+                'course_id' => $request->course_id,
+                'description' => $request->description,
+                'capacity_left' => $given_capacity,
+                'max_capacity' => $given_capacity,
+                'is_auto_promoted' => 'f',
+                'is_manual_promoted' => 'f'
+            ]);
+        }
+
+        return $event;
+    }
+
+    public function assign_lecturers($request, $event){
+        foreach($request->lecturers as $lecturer){
+            LecturerHasEvent::create(['lecturer_id' => $lecturer,
+                'event_id'=>$event->id]);
+        }
+    }
+
+    public function create_reservation($request, $event, $given_time, $given_date){
+        $arr = explode("-", $given_time, 2);
+        $start_time = $arr[0];
+        $end_time = $arr[1];
+
+        $date = $given_date;
+
+        Reservation::create(['room_id' => $request->room_id,
+            'start_time' => $start_time,
+            'end_time' => $end_time,
+            'date' => $date,
+            'event_id' => $event->id]);
+    }
+
     public function insert(Request $request){
 
         $request->validate([
@@ -171,9 +248,9 @@ class CreateEventController extends Controller
             'city_id' => 'required',
             'steam_id' => 'required',
             'room_id' => 'required',
-            'date' => 'required',
-            'time' => 'required',
-            'capacity' => 'required',
+            'dates' => 'required',
+            'times' => 'required',
+            'capacities' => 'required',
             'description' => 'required',
             'file' => 'mimes:doc,docx,pdf,txt,pptx,ppsx,odt,ods,odp,tiff,jpeg,png|max:5120'
         ],[
@@ -183,87 +260,23 @@ class CreateEventController extends Controller
             'city_id.required' => ' Nepasirinkote miesto!',
             'steam_id.required' => ' Nepasirinkote STEAM centro!',
             'room_id.required' => ' Nepasirinkote kambario!',
-            'date.required' => ' Nepasirinkote datos!',
-            'time.required' => ' Nepasirinkote laiko!',
-            'capacity.required' => ' Nepasirinkto žmonių skaičiaus!',
+            'dates.required' => ' Nepasirinkote datos!',
+            'times.required' => ' Nepasirinkote laiko!',
+            'capacities.required' => ' Nepasirinkto žmonių skaičiaus!',
             'description.required' => ' Paskaitos aprašymas yra privalomas!',
             'file.mimes' => ' Blogas pasirinktas failo formatas',
             'file.max' => ' Per didelis failas'
         ]);
 
-            $lecturer_ids=$request->lecturers;
-            $event_ids=LecturerHasEvent::all()->whereIn('lecturer_id',$lecturer_ids)->pluck('event_id');
-            $events = Event::all()->whereIn('id',$event_ids)->collect();
-            $reservations = Reservation::select('date','start_time','end_time')->whereIn('event_id',$event_ids)->get();
-
-            $arr = explode("-", $request->time, 2);
-            $start_time = $arr[0];
-            $end_time = $arr[1];
-
-            $naujasEventasTikrinimui =collect(array(
-                'date'=>"$request->date",
-                'start_time'=>"$start_time",
-                'end_time'=>"$end_time"
-            ));
-
-            // dd($naujasEventasTikrinimui==$reservations[0]);
-
-            for($x = 0; $x<sizeof($reservations);$x++){
-                if((string)$reservations[$x]==(string)$naujasEventasTikrinimui){
-                    return \redirect()->back()->with('message','Jūs šiuo metu jau užimtas!');
-                }
+        for($x = 0; $x < sizeof($request->dates); $x++){
+            if($this->lecturers_available($request, $request->times[$x], $request->dates[$x])){
+                $event = $this->create_event($request, $request->capacities[$x]);
+                $this->assign_lecturers($request, $event);
+                $this->create_reservation($request, $event, $request->times[$x], $request->dates[$x]);
+            }else{
+                return \redirect()->back()->with('message','Dėstytojas šiuo metu jau užimtas!');
             }
-
-
-
-        if($request->hasFile('file')){
-                            $filename = $request ->file -> getClientOriginalName();
-                            $request->file -> storeAs(('public/file'),$filename);
-                            $file = File ::create(
-                                ['name' =>$filename]
-                            );
-            $event = Event::create(['name' => $request->name,
-            'room_id' => $request->room_id,
-            'course_id' => $request->course_id,
-            'description' => $request->description,
-            'capacity_left' => $request->capacity,
-            'max_capacity' => $request->capacity,
-            'is_auto_promoted' => 'f',
-            'is_manual_promoted' => 'f',
-            'file_id' => $file->id]);
-                                }
-        else {
-            $event = Event::create(['name' => $request->name,
-            'room_id' => $request->room_id,
-            'course_id' => $request->course_id,
-            'description' => $request->description,
-            'capacity_left' => $request->capacity,
-            'max_capacity' => $request->capacity,
-            'is_auto_promoted' => 'f',
-            'is_manual_promoted' => 'f'
-            ]);
         }
-
-
-        foreach($request->lecturers as $lecturer){
-            LecturerHasEvent::create(['lecturer_id' => $lecturer,
-                'event_id'=>$event->id]);
-        }
-
-
-        $arr = explode("-", $request->time, 2);
-        $start_time = $arr[0];
-        $end_time = $arr[1];
-
-        $date = $request->date;
-
-
-        Reservation::create(['room_id' => $request->room_id,
-            'start_time' => $start_time,
-            'end_time' => $end_time,
-            'date' => $date,
-            'event_id' => $event->id]);
-
 
         return redirect()->back()->with('message', 'Paskaita pridėta. Ją galite matyti paskaitų puslapyje.');
     }
