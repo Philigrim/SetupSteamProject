@@ -46,6 +46,8 @@ Route::group(['prefix' => 'kursai'], function(){
     Route::post('/','CourseController@index_reservations')->name('coursecontroller.index_reservations');
 });
 
+Route::get('/findcourse','CourseController@search')->name('kursai.search');
+
 Route::group(['prefix' => 'paskaitos'], function(){
     Route::get('/','EventController@index')->name('Paskaitos');
     Route::post('/','EventController@insert')->name('eventcontroller.insert');

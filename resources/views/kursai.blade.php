@@ -7,7 +7,25 @@
     @include('users.partials.header', ['title' => __('Kursai'),
              'description' => __("Čia matote vedamus kursus STEAM centruose. Paspaudę ant 'Paskaitos',
              matysite pasirinkto kurso paskaitas.")])
+
     <div class="container">
+
+    <!-- Search form -->
+    <form action="{{ route('kursai.search') }}" method="get">
+        <div class="input-group border border-primary rounded mt-3">
+            <input class="form-control border border-none" name="search" type="text" @if(isset($search)) value="{{ $search }}" @endif placeholder="Raskite norimą kursą">
+            <select style="width: 15%; background-color:white;" name="category">
+                <option value="" @if(!isset($category_value)) selected @endif>{{ "Visos kategorijos" }}</option>
+                @foreach($subjects as $subject)
+                <option @if(isset($category) && $subject->id==$category) selected @endif value="{{ $subject->id }}">{{ $subject->subject }}</option>
+                @endforeach
+            </select>
+            <div class="input-group-append">
+                <button class="btn btn-primary"><i class="fa fa-search"></i></button>
+            </div>
+        </div>
+    </form>
+
     @foreach ($courses as $course)
         <div class="row">
             <div class="col">

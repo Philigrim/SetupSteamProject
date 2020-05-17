@@ -117,7 +117,6 @@
 <div class="container-fluid row d-flex justify-content-center">
     <div class="col-xl-6 mt-3">
     <div clas="row">
-    
 
         <!-- Search form -->
         <form action="{{ route('announcements.search') }}" method="get">
