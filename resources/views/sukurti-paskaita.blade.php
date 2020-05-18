@@ -434,18 +434,39 @@
             // 'dates[]': 'required',
             // 'times[]': 'required',
             // 'capacities[]': 'required',
-            datepicker0: 'required',
+            datepicker0: {
+                required: true,
+
+            },
             datepicker1: 'required',
             datepicker2: 'required',
             datepicker3: 'required',
             datepicker4: 'required',
             datepicker5: 'required',
-            time0: 'required',
-            time1: 'required',
-            time2: 'required',
-            time3: 'required',
-            time4: 'required',
-            time5: 'required',
+            time0: {
+                required: true,
+                notDuplicate: true
+            },
+            time1: {
+                required: true,
+                notDuplicate: true
+            },
+            time2: {
+                required: true,
+                notDuplicate: true
+            },
+            time3: {
+                required: true,
+                notDuplicate: true
+            },
+            time4: {
+                required: true,
+                notDuplicate: true
+            },
+            time5: {
+                required: true,
+                notDuplicate: true
+            },
             capacity0: 'required',
             capacity1: 'required',
             capacity2: 'required',
@@ -470,12 +491,30 @@
             datepicker3: 'Pasirinkite datą',
             datepicker4: 'Pasirinkite datą',
             datepicker5: 'Pasirinkite datą',
-            time0: 'Pasirinkite laiką',
-            time1: 'Pasirinkite laiką',
-            time2: 'Pasirinkite laiką',
-            time3: 'Pasirinkite laiką',
-            time4: 'Pasirinkite laiką',
-            time5: 'Pasirinkite laiką',
+            time0: {
+                required: "Pasirinkite laiką",
+                notDuplicate: "Tokia data ir laikas jau pasirinkti"
+            },
+            time1: {
+                required: "Pasirinkite laiką",
+                notDuplicate: "Tokia data ir laikas jau pasirinkti"
+            },
+            time2: {
+                required: "Pasirinkite laiką",
+                notDuplicate: "Tokia data ir laikas jau pasirinkti"
+            },
+            time3: {
+                required: "Pasirinkite laiką",
+                notDuplicate: "Tokia data ir laikas jau pasirinkti"
+            },
+            time4: {
+                required: "Pasirinkite laiką",
+                notDuplicate: "Tokia data ir laikas jau pasirinkti"
+            },
+            time5: {
+                required: "Pasirinkite laiką",
+                notDuplicate: "Tokia data ir laikas jau pasirinkti"
+            },
             capacity0: 'Pasirinkite vietų skaičių',
             capacity1: 'Pasirinkite vietų skaičių',
             capacity2: 'Pasirinkite vietų skaičių',
@@ -503,44 +542,66 @@
         },
     });
 
-    function check_for_duplicates(current_date) {
+    jQuery.validator.addMethod("notDuplicate", function(value, element) {
         var zip = (a,b) => a.map((x,i) => [x,b[i]]);
 
-        var current_date_id = current_date.attr('id');
-        var current_date_id_count = current_date_id.substring(10, current_date_id.length);
+        var element_id = element.id;
+        var id_value = element_id.substring(4, element_id.length);
 
-        var current_time_id = "time" + (parseInt(current_date_id_count));
+        var date_id = "datepicker" + (parseInt(id_value));
 
-        var current_time = $('#' + current_time_id);
-
-        // alert(current_time.val());
+        var this_date = $('#' + date_id);
 
         var dates = $(".date").map(function() {
             return this.id;
         }).get();
-
-        // alert(dates);
 
         var times = $(".time").map(function() {
             return this.id;
         }).get();
 
         for(let i = 0; i < dates.length; i++){
-            // alert(date);
-            // alert(current_date.val() + "==" + $('#' + date).val());
-            if(current_date.val() == $('#' + dates[i]).val() && current_date.attr("id") != dates[i] && current_time.val() == $('#' + times[i]).val()){
-                alert(current_date_id + " and " + date + " has same values");
+            if(this_date.val() == $('#' + dates[i]).val() && this_date.attr("id") != dates[i] && value == $('#' + times[i]).val()){
+                return false;
             }
         }
-    }
+
+        return true;
+
+    });
+
+    // function check_for_duplicates(current_date) {
+    //     var zip = (a,b) => a.map((x,i) => [x,b[i]]);
+    //
+    //     var current_date_id = current_date.attr('id');
+    //     var current_date_id_count = current_date_id.substring(10, current_date_id.length);
+    //
+    //     var current_time_id = "time" + (parseInt(current_date_id_count));
+    //
+    //     var current_time = $('#' + current_time_id);
+    //
+    //     var dates = $(".date").map(function() {
+    //         return this.id;
+    //     }).get();
+    //
+    //     var times = $(".time").map(function() {
+    //         return this.id;
+    //     }).get();
+    //
+    //     for(let i = 0; i < dates.length; i++){
+    //         if(current_date.val() == $('#' + dates[i]).val() && current_date.attr("id") != dates[i] && current_time.val() == $('#' + times[i]).val()){
+    //             alert(current_date_id + " and " + date + " has same values");
+    //         }
+    //     }
+    // }
 
     // $('.date').change(check_for_duplicates($(this)));
-    $(document).on('change', '.time', function(e){
-        var time_id = $(this).attr("id");
-        var id = time_id.substring(4, time_id.length);;
-        var current_date = $('#datepicker' + id);
-        check_for_duplicates(current_date);
-    });
+    // $(document).on('change', '.time', function(e){
+    //     var time_id = $(this).attr("id");
+    //     var id = time_id.substring(4, time_id.length);;
+    //     var current_date = $('#datepicker' + id);
+    //     check_for_duplicates(current_date);
+    // });
 
     // $(document).on('change', 'date', check_for_duplicates());
     // $(document).on('change', 'time', check_for_duplicates());
