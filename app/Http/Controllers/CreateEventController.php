@@ -162,8 +162,11 @@ class CreateEventController extends Controller
         }
     }
 
-    public function lecturers_available($request, $given_time, $given_date){
-        $lecturer_ids=$request->lecturers;
+    public function lecturers_available(Request $request){
+        $given_time = $request->time_value;
+        $given_date = $request->date_value;
+
+        $lecturer_ids = $request->lecturers;
         $event_ids=LecturerHasEvent::all()->whereIn('lecturer_id',$lecturer_ids)->pluck('event_id');
         $reservations = Reservation::select('date','start_time','end_time')->whereIn('event_id',$event_ids)->get();
 
@@ -179,11 +182,11 @@ class CreateEventController extends Controller
 
         for($x = 0; $x<sizeof($reservations);$x++){
             if((string)$reservations[$x]==(string)$naujasEventasTikrinimui){
-                return false;
+                return json_encode(false);
             }
         }
 
-        return true;
+        return json_encode(true);
     }
 
     public function create_event($request, $given_capacity){
@@ -239,45 +242,82 @@ class CreateEventController extends Controller
             'event_id' => $event->id]);
     }
 
-    public function insert(Request $request){
+    public function get_values($value0, $value1, $value2, $value3, $value4, $value5){
+        $result = [];
 
-        $request->validate([
-            'name' => 'required',
-            'lecturers' => 'required',
-            'course_id' => 'required',
-            'city_id' => 'required',
-            'steam_id' => 'required',
-            'room_id' => 'required',
-            'dates' => 'required',
-            'times' => 'required',
-            'capacities' => 'required',
-            'description' => 'required',
-            'file' => 'mimes:doc,docx,pdf,txt,pptx,ppsx,odt,ods,odp,tiff,jpeg,png|max:5120'
-        ],[
-            'name.required' => ' Paskaitos pavadinimas yra privalomas!',
-            'lecturers.required' => ' Pasirinkite bent vieną dėstytoją!',
-            'course_id.required' => ' Nepasirinkote kurso!',
-            'city_id.required' => ' Nepasirinkote miesto!',
-            'steam_id.required' => ' Nepasirinkote STEAM centro!',
-            'room_id.required' => ' Nepasirinkote kambario!',
-            'dates.required' => ' Nepasirinkote datos!',
-            'times.required' => ' Nepasirinkote laiko!',
-            'capacities.required' => ' Nepasirinkto žmonių skaičiaus!',
-            'description.required' => ' Paskaitos aprašymas yra privalomas!',
-            'file.mimes' => ' Blogas pasirinktas failo formatas',
-            'file.max' => ' Per didelis failas'
-        ]);
-
-        for($x = 0; $x < sizeof($request->dates); $x++){
-            if($this->lecturers_available($request, $request->times[$x], $request->dates[$x])){
-                $event = $this->create_event($request, $request->capacities[$x]);
-                $this->assign_lecturers($request, $event);
-                $this->create_reservation($request, $event, $request->times[$x], $request->dates[$x]);
-            }else{
-                return \redirect()->back()->with('message','Dėstytojas šiuo metu jau užimtas!');
-            }
+        if($value0){
+            array_push($result, $value0);
         }
 
-        return redirect()->back()->with('message', 'Paskaita pridėta. Ją galite matyti paskaitų puslapyje.');
+        if($value1){
+            array_push($result, $value1);
+        }
+
+        if($value2){
+            array_push($result, $value2);
+        }
+
+        if($value3){
+            array_push($result, $value3);
+        }
+
+        if($value4){
+            array_push($result, $value4);
+        }
+
+        if($value5){
+            array_push($result, $value5);
+        }
+
+        return $result;
+    }
+
+    public function insert(Request $request){
+
+//        $request->validate([
+//            'name' => 'required',
+//            'lecturers' => 'required',
+//            'course_id' => 'required',
+//            'city_id' => 'required',
+//            'steam_id' => 'required',
+//            'room_id' => 'required',
+//            'dates' => 'required',
+//            'times' => 'required',
+//            'capacities' => 'required',
+//            'description' => 'required',
+//            'file' => 'mimes:doc,docx,pdf,txt,pptx,ppsx,odt,ods,odp,tiff,jpeg,png|max:5120'
+//        ],[
+//            'name.required' => ' Paskaitos pavadinimas yra privalomas!',
+//            'lecturers.required' => ' Pasirinkite bent vieną dėstytoją!',
+//            'course_id.required' => ' Nepasirinkote kurso!',
+//            'city_id.required' => ' Nepasirinkote miesto!',
+//            'steam_id.required' => ' Nepasirinkote STEAM centro!',
+//            'room_id.required' => ' Nepasirinkote kambario!',
+//            'dates.required' => ' Nepasirinkote datos!',
+//            'times.required' => ' Nepasirinkote laiko!',
+//            'capacities.required' => ' Nepasirinkto žmonių skaičiaus!',
+//            'description.required' => ' Paskaitos aprašymas yra privalomas!',
+//            'file.mimes' => ' Blogas pasirinktas failo formatas',
+//            'file.max' => ' Per didelis failas'
+//        ]);
+
+
+
+        $dates = $this->get_values($request->datepicker0, $request->datepicker1, $request->datepicker2, $request->datepicker3, $request->datepicker4, $request->datepicker5);
+        $times = $this->get_values($request->time0, $request->time1, $request->time2, $request->time3, $request->time4, $request->time5);
+        $capacities = $this->get_values($request->capacity0, $request->capacity1, $request->capacity2, $request->capacity3, $request->capacity4, $request->capacity5);
+
+        for($x = 0; $x < sizeof($dates); $x++){
+            $event = $this->create_event($request, $capacities[$x]);
+            $this->assign_lecturers($request, $event);
+            $this->create_reservation($request, $event, $times[$x], $dates[$x]);
+        }
+
+        if(sizeof($dates) > 1){
+            return redirect()->back()->with('message', 'Paskaitos sėkmingai pridėtos. Jas galite matyti paskaitų puslapyje.');
+        }else{
+            return redirect()->back()->with('message', 'Paskaita sėkmingai pridėta. Ją galite matyti paskaitų puslapyje.');
+        }
+
     }
 }

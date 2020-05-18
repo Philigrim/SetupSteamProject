@@ -2,6 +2,12 @@
 @section('additional_header_content')
 {{-- JQUERY --}}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
+{{--JQUERY Form Validation--}}
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+
+{{--WIN CSS--}}
+    <link href="{{ asset('css/win.css') }}" rel="stylesheet" type="text/css" >
 @endsection
 @section('content')
     @include('users.partials.header', ['title' => __('Sukurti kursą'),
@@ -34,18 +40,15 @@
 
 			</div>
 		@endif
-                    <form action = "/sukurti-kursa" method="post">
+                    <form id="form" action = "/sukurti-kursa" method="post">
                         @csrf
-                        <div class="form-group{{ $errors->has('course_title') ? ' has-danger' : '' }}">
-                        <div class="col-md-12  ">
+                        <div class="col-md-12">
                             <div class="form-group">
                                 <input class="form-control" placeholder="Kurso pavadinimas" value="{{old('course_title')}}" name="course_title" >
                             </div>
-                </div>
                         </div>
                         <div class="row d-flex justify-content-center">
                             <div class="col-md-4">
-                                <div class="form-group{{ $errors->has('course_title') ? ' has-danger' : '' }}">
                                 <div class="form-group">
                                     <select class="form-control dropdown-menu-arrow dynamic" name="subject_id" id ="subject_id" data-dependent="lecturer_id">
                                         <option value="" selected disabled>{{ "Dalykai" }}</option>
@@ -54,7 +57,6 @@
                                         @endforeach
                                     </select>
                                 </div>
-                            </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -65,22 +67,17 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                <div class="form-group{{ $errors->has('course_title') ? ' has-danger' : '' }}">
                                 <div class="form-group">
                                     <textarea class="form-control" rows="5" placeholder="Apie kursą ..." name="description"  maxlength="1500">{{old('description')}}</textarea>
                                 </div>
                             </div>
-                                </div>
-
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                <div class="form-group{{ $errors->has('course_title') ? ' has-danger' : '' }}">
                                 <div class="form-group">
                                     <textarea class="form-control" rows="5" placeholder="Papildoma informacija ..." name="comments">{{old('comments')}}</textarea>
                                     </div>
                                 </div>
-                            </div>
                         </div>
                         <div class="text-center">
                             <div class="form-group">
@@ -113,9 +110,37 @@
                 })
             }
         })
-        $('.table-scroll').DataTable({
-            "scrollY": "200px",
-            "scrollCollapse": true,
-        })
+
+        $("#form").validate({
+            focusInvalid: false,
+            errorClass: "invalid",
+            validClass: "success",
+            ignore: ".ignore",
+            rules:{
+                course_title: 'required',
+                subject_id: 'required',
+                'lecturers[]': 'required',
+                description: 'required',
+                comments: 'required'
+            },
+            messages:{
+                course_title: 'Įrašykite kurso pavadinimą',
+                subject_id: 'Pasirinkite kursą',
+                'lecturers[]': 'Pasirinkite bent vieną dėstytoją',
+                description: 'Įrašykite kurso aprašymą',
+                comments: 'Įrašykite papildomus komentarus dėstytojams ir administratoriams'
+            },
+            errorPlacement: function(error, element) {
+                if(element.attr("name") == "lecturers[]"){
+                    error.insertBefore( element.parent("div") );
+                }else{
+                    error.insertAfter(element);
+                }
+            },
+            submitHandler: function(form) {
+                // do other things for a valid form
+                form.submit();
+            },
+        });
     </script>
 @endsection
