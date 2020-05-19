@@ -99,9 +99,11 @@ Route::get('kalendorius', 'CalendarController@index')->name('calendar');
 // Data insertation page
 Route::group(['middleware' => ['auth' => 'admin']], function(){
 Route::get('/insertion', 'InsertionController@index')->name('iterpimas');
-Route::post('/insertion/fetch', 'InsertionController@fetch')->name('iterpimas.fetch');
+Route::post('/insertion/fetchForRoom', 'InsertionController@fetchForRoom')->name('iterpimas.fetchForRoom');
+Route::post('/insertion/fetchForInventory', 'InsertionController@fetchForInventory')->name('iterpimas.fetchForInventory');
 Route::post('/insertion/subject', 'InsertionController@insertSubject')->name('iterpimas.subject');
 Route::post('/insertion/city', 'InsertionController@insertCity')->name('iterpimas.city');
 Route::post('/insertion/steam-center', 'InsertionController@insertSteamCenter')->name('iterpimas.steamCenter');
 Route::post('/insertion/room', 'InsertionController@insertRoom')->name('iterpimas.room');
+Route::post('/insertion/equipment', 'InsertionController@insertEquipment')->name('iterpimas.equipment');
 });

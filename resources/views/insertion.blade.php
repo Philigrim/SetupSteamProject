@@ -94,6 +94,7 @@
                     <select class="form-control dropdown-menu-arrow" name="steam_id" id="steam_id" required>
                         <option value="" selected disabled>STEAM centras</option>
                     </select>
+                </td>
                 <td>
                     <select class="form-control dropdown-menu-arrow" name="purposeForRoom" required>
                         <option value="" selected disabled>Kambario paskirtis</option>
@@ -105,15 +106,45 @@
                 <td><button type="submit" class="btn btn-success ml-5">{{ __('Patvirtinti') }}</button></td>
                 </form>
             </tr>
+            <tr class="border-top" style="vertical-align: top;">
+                <form action = "/insertion/equipment" method="post">
+                {{ csrf_field() }}
+                <td><p class="text-xl text-white font-weight-bold mr-5 mt-3">Pridėti inventorių:</p></td>
+                <td><input class="form-control mt-3" placeholder="Inventoriaus pavadinimas" name="nameForInventory" required></td>
+                <td><input class="form-control mt-3" placeholder="Vienetų skaičius" type="number" name="quantityOfInventory" required></td>
+                <td>
+                    <select class="form-control dropdown-menu-arrow dynamic-ccr mt-3" name="city_id" id ="city_id" data-dependent="steam_id2" required>
+                    <option value="" selected disabled>Miestas</option>
+                    @foreach($cities as $city)
+                        <option value="{{ $city->id}}">{{ $city->city_name }}</option>
+                    @endforeach
+                    </select>
+                </td>
+                <td>
+                    <select class="form-control dropdown-menu-arrow dynamic-ccr mt-3" name="steam_id2" id="steam_id2" data-dependent="room_id2" required>
+                        <option value="" selected disabled>STEAM centras</option>
+                    </select>
+                </td>
+                <td>
+                    <div class="col p-0 p-0">
+                    <select class="form-control dropdown-menu-arrow mt-3" name="room_id2" id="room_id2">
+                        <option value="0" selected>Kambarys*</option>
+                    </select>
+                    <p style="color: white">* laukelis neprivalomas</p>
+                    <div>
+                </td>
+                <td><button type="submit" class="btn btn-success ml-5 mt-3">{{ __('Patvirtinti') }}</button></td>
+                </form> 
+            </tr>
+
         </table>
+        
         <div class="separator separator-bottom separator-skew zindex-100">
             <svg x="0" y="0" viewBox="0 0 2560 100" preserveAspectRatio="none" version="1.1" xmlns="http://www.w3.org/2000/svg">
                 <polygon class="fill-default" points="2560 0 2560 100 0 100"></polygon>
             </svg>
         </div>
-    </div>
 
-    <div class="container mt--10 pb-5"></div>
 
     <script type="text/javascript">
         $('.dynamic').change(function update_dropdown(){
@@ -123,7 +154,7 @@
                 var dependent = $(this).data('dependent');
                 var _token = $('input[name="_token').val();
                 $.ajax({
-                    url:"{{ route('iterpimas.fetch') }}",
+                    url:"{{ route('iterpimas.fetchForRoom') }}",
                     method: "POST",
                     data:{select:select, value:value, _token:_token, dependent:dependent},
                     success:function(result){
@@ -132,6 +163,25 @@
                 })
             }
         })
+                
+        $('.dynamic-ccr').change(function update_multi_dropdown(){
+            if($(this).val() != ''){
+                var select = $(this).attr("id");
+                var value = $(this).val();
+                var dependent = $(this).data('dependent');
+                var _token = $('input[name="_token').val();
+                $.ajax({
+                    url:"{{ route('iterpimas.fetchForInventory') }}",
+                    method: "POST",
+                    data:{select:select, value:value, _token:_token, dependent:dependent},
+                    success:function(result){
+                        $('#room_id2').html('<option value="0" selected>Kambarys*</option>');
+                        $('#'+dependent).html(result);
+                    }
+                })
+            }
+        })
     </script>
+    
 
 @endsection

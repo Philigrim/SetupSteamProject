@@ -52,17 +52,26 @@ class InsertionController extends Controller
         return redirect()->back()->withStatus(__('Centras sėkmingai pridėtas.'));
     }
     
-
     public function insertRoom(Request $request)
     {
         Room::insert(array('room_number' => $request->get('nameForRoom'),
-                                  'capacity' => $request->get('seatsForRoom'),
-                                  'steam_center_id' => $request->get('steam_id'),
-                                  'subject_id' => $request->get('purposeForRoom')));
+                           'capacity' => $request->get('seatsForRoom'),
+                           'steam_center_id' => $request->get('steam_id'),
+                           'subject_id' => $request->get('purposeForRoom')));
         return redirect()->back()->withStatus(__('Kambarys sėkmingai pridėtas.'));
     }
 
-    function fetch(Request $request)
+    public function insertInventory(Request $request)
+    {
+        Room::insert(array('name' => $request->get('nameForInventory'),
+                           'quantity' => $request->get('quantityOfInventory'),
+                           'quantity_left' => $request->get('quantityOfInventory'),
+                           'steam_center_id' => $request->get('steam_id2'),
+                           'room_id' => $request->get('room_id2')));
+        return redirect()->back()->withStatus(__('Inventorius sėkmingai pridėtas.'));
+    }
+
+    function fetchForRoom(Request $request)
     {
         $select = $request->get('select');
         $value = $request->get('value');
@@ -79,5 +88,28 @@ class InsertionController extends Controller
         echo $output;
     }
 
+    function fetchForInventory(Request $request){
+        $select = $request->get('select');
+        $value = $request->get('value');
+        $dependent = $request->get('dependent');
+
+        if($dependent == 'steam_id2'){
+            $steam_centers = SteamCenter::all()->where($select, '=', $value);
+
+            $output = '<option value="" selected disabled>STEAM Centras</option>';
+            foreach ($steam_centers as $steam_center) {
+                $output .= '<option value="' . $steam_center->id . '">' . $steam_center->steam_name . '</option>';
+            }
+            echo $output;
+        }else if($dependent == 'room_id2'){
+            $rooms = Room::all()->where('steam_center_id','=', $value);
+
+            $output = '<option value="0" selected>Kambarys*</option>';
+            foreach ($rooms as $room) {
+                $output .= '<option data-capacity="'. $room->capacity .'" value="' . $room->id . '">' . $room->room_number .'('. $room->capacity .')'.' '. $room->subject->subject .'</option>';
+            }
+            echo $output;
+        }
+    }
 }
 
