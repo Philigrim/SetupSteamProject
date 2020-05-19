@@ -16,6 +16,10 @@ use App\User;
 use App\Event;
 use App\Reservation;
 
+use App\Subject;
+use App\City;
+use App\Course;
+
 class ActivityController extends Controller
 {
     public function __construct()
@@ -48,9 +52,14 @@ class ActivityController extends Controller
         $pastEvents2 = $reservations->where('date', $date)->where('end_time', '<', $time);
         $pastEvents = $pastEvents1->merge($pastEvents2)->sortBy('end_time')->sortBy('date');
         
-
+        $lecturers = LecturerHasEvent::all()->groupBy('event_id')->collect();
+        $subjects = Subject::all();
+        $cities = City::all();
+        $lecturersForEdit = Lecturer::all();
+        $courses = Course::all();
+    
         $teachers=EventHasTeacher::all()->groupBy('event_id')->collect();
-        return view('manopaskaitos',['events'=>$events,'teachers'=>$teachers, 'futureEvents'=>$futureEvents, 'pastEvents'=>$pastEvents,'date'=>$date]);
+        return view('manopaskaitos',['events'=>$events,'teachers'=>$teachers, 'futureEvents'=>$futureEvents, 'pastEvents'=>$pastEvents,'date'=>$date, 'lecturers'=>$lecturers, 'subjects'=>$subjects, 'cities'=>$cities, 'courses'=>$courses, 'lecturersForedit'=>$lecturersForEdit]);
     }
 
     public function update(Request $request){
@@ -78,5 +87,59 @@ class ActivityController extends Controller
 
     }
 
+    public function updateEvent(Request $request){
+
+        date_default_timezone_set('Europe/Vilnius');
+        $modification_date = date('Y/m/d H:i', time());
+
+        if($request->hasFile('file')){
+            $filename = $request->file ->getClientOriginalName();
+            $request->file->storeAs(('public/file'),$filename);
+            $file = File::create(['name'=>$filename]);
+            $data = array(
+                'name' => $request->name,
+                'room_id' => $request->room_id,
+                'course_id' => $request->course_id,
+                'description' => $request->description,
+                'capacity_left' => $request->capacity-$request->capacity_left,
+                'max_capacity' => $request->capacity,
+                'file_id' => $file->id,
+                'updated_at' => $modification_date);
+        } else {
+            $data = array(
+                'name' => $request->name,
+                'room_id' => $request->room_id,
+                'course_id' => $request->course_id,
+                'description' => $request->description,
+                'capacity_left' => $request->capacity-$request->capacity_left,
+                'max_capacity' => $request->capacity,
+                'updated_at' => $modification_date);
+        }
+
+        $event_id = Reservation::where('id', $request->edited_id)->pluck('event_id')->first();
+
+        if($request->lecturers != null){
+            LecturerHasEvent::where('event_id', $event_id)->delete();
+            foreach($request->lecturers as $lecturer){
+                LecturerHasEvent::create(['lecturer_id' => $lecturer, 'event_id' => $event_id]);
+            }
+            $arr = explode("-", $request->time, 2);
+            $start_time = $arr[0];
+            $end_time = $arr[1];
+        } else {
+            return redirect()->route('manopaskaitos')->with('dangerstatus','Paskaita nebuvo redaguota. Turite pasirinkti bent vieną dėstytoją!');
+        }
+
+        Reservation::where('id', $request->edited_id)->update([
+            'room_id' => $request->room_id,
+            'start_time' => $start_time,
+            'end_time' => $end_time,
+            'date' => $request->date,
+            'updated_at' => $modification_date]);
+
+        Event::where('id', $event_id)->update($data);
+
+        return redirect()->route('manopaskaitos')->with('status','Paskaita sėkmingai redaguota.');
+    }
 
 }

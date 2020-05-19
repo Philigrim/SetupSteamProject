@@ -61,13 +61,11 @@ class FAQController extends Controller
         $futureEventsIds = $futureEvents1->merge($futureEvents2)->merge($futureEvents3)->pluck('event_id');
         Event::wherein('id', $futureEventsIds)->update(['is_auto_promoted' => 'true']);
 
-
         // promoted events
         $events = Event::where("capacity_left", ">", 0)->where("is_auto_promoted", true)->orWhere("is_manual_promoted", true);
         $reservations = Reservation::whereIn('event_id', $events->pluck('events.id'))->get();
         $lecturers = LecturerHasEvent::all()->whereIn('event_id', $events->pluck('events.id'))->groupBy('event_id');
         $events = $events->get();
-
         
         return view('faq', ['questions_and_answers'=>$questions_and_answers, 'questions'=>$questions, 'events'=>$events, 'lecturers'=>$lecturers, 'reservations'=>$reservations]);
     }

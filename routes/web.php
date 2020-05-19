@@ -92,6 +92,7 @@ Route::group(['middleware' => 'auth'], function () {
 
 Route::get('manopaskaitos', 'ActivityController@index')->name('manopaskaitos');
 Route::post('manopaskaitos', 'ActivityController@update');
+Route::patch('manopaskaitos/{event_id}', 'ActivityController@updateEvent')->name('manopaskaitos.updateEvent');
 Route::get('kalendorius', 'CalendarController@index')->name('calendar');
 
 
