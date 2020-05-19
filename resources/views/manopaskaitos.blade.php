@@ -18,10 +18,10 @@
                 <div class="card-body" style="padding-left:0">
                     <div class="column pl-lg-4 " >
                         <th><p class="heading-small text-muted mb-4" style="font-weight:bold">{{ __('Būsimos paskaitos') }}</p></th>
- 
+
                         <table class ="table table-hover table-responsive table-sm" cellspacing="0" >
-                            
-                            
+
+
                             <tr>
                                 <th>Paskaitos pavadinimas:</th>
                                 <th>Destytojas:</th>
@@ -45,15 +45,15 @@
                                 @else
                                 <th><button href ="#" class="show-toolate-modal btn btn-success mt-2" data-id="{{$reservation->event->id}}" style="width: 94%">Keisti</button> </th>
                                 @endif
-                                @else 
-                                <th><button href ="#" class="show-participants btn btn-success mt-2" data-id="{{$reservation->event->id}}" style="width: 94%">Rodyti dalyvius</button> </th>
+                                @else
+                                <th><button href ="#" class="show-participants btn btn-success mt-2" data-id="{{$reservation->event->id}}" data-teachers="{{$grouped_teachers}}" style="width: 94%">Rodyti dalyvius</button> </th>
                                 @endif
                             </tr>
 
                             @endforeach
                             <th><p class="heading-small text-muted mt-5" style="margin-left: -20; font-weight:bold">{{ __('Praėjusios paskaitos') }}</p></th>
 
-                        
+
                             <tr>
                                 <th>Paskaitos pavadinimas:</th>
                                 <th>Destytojas:</th>
@@ -68,13 +68,13 @@
                                 <th style="font-weight:normal">{{ $reservation->event->name}}</th>
                                 <th style="font-weight:normal">{{ $reservation->event->lecturer->lecturer->user->firstname }} {{ $reservation->event->lecturer->lecturer->user->lastname }}</th>
                                 <th style="font-weight:normal">{{ $reservation->date }}, {{ substr($reservation->start_time, 0, 5) }} - {{ substr($reservation->end_time, 0, 5) }}</th>
-                            
+
                                 <th style="font-weight:normal"> {{ $reservation->event->capacity_left }}/{{ $reservation->event->max_capacity}} </th>
-                            
+
                                 <th style="font-weight:normal">{{ $reservation->event->room->steam->city->city_name}}, {{ $reservation->event->room->steam->steam_name}}, {{ $reservation->event->room->steam->address}}</th>
                                 <th style="font-weight:normal">{{ $reservation->event->room->room_number}}</th>
                                 @if(Auth::user()->isRole()!="mokytojas")
-                                <th><button href ="#" class="show-participants btn btn-success mt-2" data-id="{{$reservation->event->id}}" style="width: 94%">Rodyti dalyvius</button> </th>
+                                <th><button href ="#" class="show-participants btn btn-success mt-2" data-info="{{$reservation->event->id}}" data-grouped-teachers="{{$grouped_teachers}}" style="width: 94%">Rodyti dalyvius</button> </th>
                                 @endif
                             </tr>
                             @endforeach
@@ -116,7 +116,7 @@
                         </div>
                     </div>
 
-                   
+
                     <div class="modal fade" id="show1" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered" role="document">
                             <div class="modal-content">
@@ -131,7 +131,7 @@
                                 </div>
                            </div>
                         </div>
-                    </div> 
+                    </div>
                     <div class="modal fade" id="show-participants" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered" role="document">
                             <div class="modal-content">
@@ -142,17 +142,16 @@
                                     </button>
                                 </div>
                                 <div class="modal-body">
-                                    <table class ="table table-hover table-responsive table-sm" cellspacing="0" >
-                            
-                            
+                                    <table id="teachers-table" class="table table-hover table-responsive table-sm" cellspacing="0" >
+
+
                                         <tr>
-                                            <th>Mokytojas</th>
-                                            <th>Mokinių skaičius</th>
+
                                         </tr>
-                                        <tr>
-                                            <th style="font-weight:normal">Belekoks geras</th>
-                                            <th style="font-weight:normal">8</th>
-                                    </table>                            
+{{--                                        <tr>--}}
+{{--                                            <th style="font-weight:normal">Belekoks geras</th>--}}
+{{--                                            <th style="font-weight:normal">8</th>--}}
+                                    </table>
                                 </div>
                            </div>
                         </div>
@@ -164,7 +163,7 @@
     </div>
 
     </div>
-    
+
 
 
 @endsection
@@ -189,6 +188,15 @@
     })
     $(document).on('click', '.show-participants', function() {
         $('#show-participants').modal('show');
+        var event_id = $(this).data('id');
+        var teachers = $(this).data('teachers');
 
+        alert(event_id, teachers);
+
+        if(teachers[event_id]){
+            for(let i = 0; i < teachers[event_id]; i++){
+                $('#teacher-table').append(i);
+            }
+        }
     })
 </script>

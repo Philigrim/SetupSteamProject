@@ -116,7 +116,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <select class="time form-control dropdown-menu-arrow" data-msg-required="Pasirinkite laiką" name="time0" id="time0" >
+                                        <select class="time-select form-control dropdown-menu-arrow" data-msg-required="Pasirinkite laiką" name="time0" id="time0" >
                                             <option selected disabled>Laikas</option>
                                         </select>
                                     </div>
@@ -203,8 +203,9 @@
                 }
             })
         }
-    })
-        $("#file").change(function(){
+    });
+
+    $("#file").change(function(){
         $("#file-name").text(this.files[0].name);
     });
 
@@ -220,7 +221,7 @@
                 data:{select:select, value:value, _token:_token, dependent:dependent},
                 success:function(result){
                     $('#room_id').html('<option value="" selected disabled>Kambarys</option>')
-                    var rows = $(".time").map(function() {
+                    var rows = $(".time-select").map(function() {
                         return this.id;
                     }).get();
 
@@ -331,7 +332,7 @@
             "                                </div>\n" +
             "                                <div class=\"col-md-4\">\n" +
             "                                    <div class=\"form-group\">\n" +
-            "                                        <select class=\"time form-control dropdown-menu-arrow\" data-msg-required=\"Pasirinkite laiką\" name=\"" + new_time_id + "\" id=\"" + new_time_id + "\" >\n" +
+            "                                        <select class=\"time-select form-control dropdown-menu-arrow\" data-msg-required=\"Pasirinkite laiką\" name=\"" + new_time_id + "\" id=\"" + new_time_id + "\" >\n" +
             "                                            <option selected disabled>Laikas</option>\n" +
             "                                        </select>\n" +
             "                                    </div>\n" +
@@ -380,10 +381,6 @@
         }
     }
 
-    $("form").submit(function(event) {
-        event.preventDefault();
-    });
-
     $("#remove-item").click(remove_item);
 
     // $("#set-row-amount").change(function(){
@@ -425,6 +422,7 @@
         errorClass: "invalid",
         validClass: "success",
         ignore: ".ignore",
+        time: false,
         rules: {
             name: 'required',
             course_id: 'required',
@@ -658,7 +656,7 @@
             file: {
                 required: false,
                 extension: 'doc,docx,pdf,txt,pptx,ppsx,odt,ods,odp,tiff,jpeg,png',
-                filesize: 5000000
+                filesize: 5242880
             },
         },
         messages: {
@@ -748,20 +746,13 @@
 
         },
         submitHandler: function(form, event) {
-            alert("WAIT");
-            event.preventDefault();
             // do other things for a valid form
-            // form.submit();
+            form.submit();
         },
     });
 
-    jQuery.validator.addMethod("filesize", function (value, element, arg) {
-        // var minsize=1000; // min 1kb
-        if(value<=arg){
-            return true;
-        }else{
-            return false;
-        }
+    jQuery.validator.addMethod('filesize', function(value, element, param) {
+        return this.optional(element) || (element.files[0].size <= param)
     });
 
     jQuery.validator.addMethod("notDuplicate", function(value, element) {
@@ -778,7 +769,7 @@
             return this.id;
         }).get();
 
-        var times = $(".time").map(function() {
+        var times = $(".time-select").map(function() {
             return this.id;
         }).get();
 

@@ -35,7 +35,10 @@ class ActivityController extends Controller
 
         $events = Event::all()->whereIn('id',$event_ids)->collect();
         $reservations = Reservation::all()->whereIn('event_id',$event_ids);
-        
+
+        $grouped_teachers = EventHasTeacher::all()->groupBy('event_id')->collect();
+//        dd($grouped_teachers);
+
         date_default_timezone_set('Europe/Vilnius');
         $date = date('Y-m-d', time());
         $time = date('H:i:s', time());
@@ -47,10 +50,10 @@ class ActivityController extends Controller
         $pastEvents1 = $reservations->where('date', '<', $date);
         $pastEvents2 = $reservations->where('date', $date)->where('end_time', '<', $time);
         $pastEvents = $pastEvents1->merge($pastEvents2)->sortBy('end_time')->sortBy('date');
-        
+
 
         $teachers=EventHasTeacher::all()->groupBy('event_id')->collect();
-        return view('manopaskaitos',['events'=>$events,'teachers'=>$teachers, 'futureEvents'=>$futureEvents, 'pastEvents'=>$pastEvents,'date'=>$date]);
+        return view('manopaskaitos',['events'=>$events,'teachers'=>$teachers, 'futureEvents'=>$futureEvents, 'pastEvents'=>$pastEvents,'date'=>$date, 'grouped_teachers'=>$grouped_teachers]);
     }
 
     public function update(Request $request){
@@ -59,8 +62,8 @@ class ActivityController extends Controller
         $capacity = Event::select('capacity_left')->where(['id'=>$request->event_id])->first();
         // dd($capacity);
         $oldteacherpupilcount=EventHasTeacher::select('pupil_count')->where([['teacher_id','=',$teacher],['event_id','=',$request->event_id]])->first();
-        
-        
+
+
         $newpupilcount = $request->pupil_count;
         // dd($oldteacherpupilcount);
         $newcapacityleft = $capacity ->capacity_left +$oldteacherpupilcount->pupil_count - $newpupilcount;
@@ -74,7 +77,7 @@ class ActivityController extends Controller
         ])->update([
             'pupil_count'=>$newpupilcount
         ]);
-        return \redirect()->back()->with('message','Jūs sėkmingai pakeitėte registraciją!');         
+        return \redirect()->back()->with('message','Jūs sėkmingai pakeitėte registraciją!');
 
     }
 

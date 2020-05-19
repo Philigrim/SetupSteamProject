@@ -304,21 +304,20 @@ class CreateEventController extends Controller
 
 
 
-//        $dates = $this->get_values($request->datepicker0, $request->datepicker1, $request->datepicker2, $request->datepicker3, $request->datepicker4, $request->datepicker5);
-//        $times = $this->get_values($request->time0, $request->time1, $request->time2, $request->time3, $request->time4, $request->time5);
-//        $capacities = $this->get_values($request->capacity0, $request->capacity1, $request->capacity2, $request->capacity3, $request->capacity4, $request->capacity5);
-//
-//        for($x = 0; $x < sizeof($dates); $x++){
-//            $event = $this->create_event($request, $capacities[$x]);
-//            $this->assign_lecturers($request, $event);
-//            $this->create_reservation($request, $event, $times[$x], $dates[$x]);
-//        }
-//
-//        if(sizeof($dates) > 1){
-//            return redirect()->back()->with('message', 'Paskaitos sėkmingai pridėtos. Jas galite matyti paskaitų puslapyje.');
-//        }else{
-//            return redirect()->back()->with('message', 'Paskaita sėkmingai pridėta. Ją galite matyti paskaitų puslapyje.');
-//        }
+        $dates = $this->get_values($request->datepicker0, $request->datepicker1, $request->datepicker2, $request->datepicker3, $request->datepicker4, $request->datepicker5);
+        $times = $this->get_values($request->time0, $request->time1, $request->time2, $request->time3, $request->time4, $request->time5);
+        $capacities = $this->get_values($request->capacity0, $request->capacity1, $request->capacity2, $request->capacity3, $request->capacity4, $request->capacity5);
 
+        for($x = 0; $x < sizeof($dates); $x++){
+            $event = $this->create_event($request, $capacities[$x]);
+            $this->assign_lecturers($request, $event);
+            $this->create_reservation($request, $event, $times[$x], $dates[$x]);
+        }
+
+        if(sizeof($dates) > 1){
+            return redirect()->back()->with('message', 'Paskaitos sėkmingai pridėtos. Jas galite matyti paskaitų puslapyje.');
+        }else{
+            return redirect()->back()->with('message', 'Paskaita sėkmingai pridėta. Ją galite matyti paskaitų puslapyje.');
+        }
     }
 }
