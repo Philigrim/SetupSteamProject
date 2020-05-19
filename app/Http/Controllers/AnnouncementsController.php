@@ -63,7 +63,6 @@ class AnnouncementsController extends Controller
         $futureEventsIds = $futureEvents1->merge($futureEvents2)->merge($futureEvents3)->pluck('event_id');
         Event::wherein('id', $futureEventsIds)->update(['is_auto_promoted' => 'true']);
 
-
         // promoted events
         $steamCentersInUserCity = SteamCenter::all()->where('city_id', \Auth::user()->city_id)->pluck('id');
         $roomsInUserCity = Room::all()->whereIn('steam_center_id', $steamCentersInUserCity)->pluck('id');

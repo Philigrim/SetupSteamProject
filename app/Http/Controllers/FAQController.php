@@ -9,6 +9,8 @@ use App\LecturerHasEvent;
 use App\Reservation;
 use App\Subject;
 use App\City;
+use App\SteamCenter;
+use App\Room;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -62,7 +64,9 @@ class FAQController extends Controller
         Event::wherein('id', $futureEventsIds)->update(['is_auto_promoted' => 'true']);
 
         // promoted events
-        $events = Event::where("capacity_left", ">", 0)->where("is_auto_promoted", true)->orWhere("is_manual_promoted", true);
+        $steamCentersInUserCity = SteamCenter::all()->where('city_id', \Auth::user()->city_id)->pluck('id');
+        $roomsInUserCity = Room::all()->whereIn('steam_center_id', $steamCentersInUserCity)->pluck('id');
+        $events = Event::whereIn('room_id', $roomsInUserCity)->where("capacity_left", ">", 0)->where("is_auto_promoted", true)->orWhere("is_manual_promoted", true);
         $reservations = Reservation::whereIn('event_id', $events->pluck('events.id'))->get();
         $lecturers = LecturerHasEvent::all()->whereIn('event_id', $events->pluck('events.id'))->groupBy('event_id');
         $events = $events->get();
