@@ -53,11 +53,6 @@ class EventController extends Controller
 
         $lecturers = LecturerHasEvent::all()->groupBy('event_id')->collect();
         $events = Event::all();
-        $count = $reservations->count()/2;
-
-        if($count == 0.5){
-            $count = 2;
-        }
 
         $subjects = Subject::all();
         $cities = City::all();
@@ -65,7 +60,7 @@ class EventController extends Controller
         $lecturersForEdit = Lecturer::all();
         $courses = Course::all();
 
-        return view('paskaitos', ['events'=>$events, 'count'=>$count, 'lecturers'=>$lecturers, 'reservations'=>$reservations, 'subjects'=>$subjects, 'cities'=>$cities, 'courses'=>$courses, 'lecturersForedit'=>$lecturersForEdit, 'course_title'=>$course_title]);
+        return view('paskaitos', ['events'=>$events, 'lecturers'=>$lecturers, 'reservations'=>$reservations, 'subjects'=>$subjects, 'cities'=>$cities, 'courses'=>$courses, 'lecturersForedit'=>$lecturersForEdit, 'course_title'=>$course_title]);
     }
 
     public function fetch_lecturers(Request $request){
@@ -133,11 +128,13 @@ class EventController extends Controller
         }
 
         $dateInput = $request->get('filterDateInput');
+
+        $reservations = Reservation::all()->whereIn('event_id', $events->pluck('events.id'));
+
         $dateOneDay = $request->get('filterDateOneDay');
         $dateFrom = $request->get('filterDateFrom');
         $dateTill = $request->get('filterDateTill');
-
-        $reservations = Reservation::all();
+        
         if(isset($dateInput)){
 
         if($dateInput!="oneDay"){$dateOneDay="";}
@@ -188,35 +185,24 @@ class EventController extends Controller
             $reservations = $futureReservations1->merge($todayFutureReservations2);
         }
 
-        //$reservations = Reservation::whereIn('event_id', $events->pluck('events.id'));
-
-        $count = $reservations->count()/2;
-        if($count == 0.5){
-            $count = 2;
-        }
-
-        if($events->count()>0){
-            $lecturers = LecturerHasEvent::all()->whereIn('event_id', $events->pluck('events.id'))->groupBy('event_id')->collect();
-
-        } else {
-            $lecturers = $events;
-        }
+        $lecturers = LecturerHasEvent::all()->groupBy('event_id')->collect();
+        
         $events = $events->get();
+
         $subjects = Subject::all();
         $cities = City::all();
-
-        $lecturersForEdit = Lecturer::all();
         $courses = Course::all();
+        $lecturersForEdit = Lecturer::all();
 
-        return view('paskaitos', ['events'=>$events, 'count'=>$count, 'lecturers'=>$lecturers, 'reservations'=>$reservations, 'subjects'=>$subjects, 'cities'=>$cities, 'courses'=>$courses, 'lecturersForEdit'=>$lecturersForEdit, 'filtered'=>$filtered,
-           'category_value'=>$category, 'city_value'=>$city, 'capacity_value'=>$capacity, 'date_value'=>$dateInput, 'dateOneDay'=>$dateOneDay, 'dateFrom'=>$dateFrom, 'dateTill'=>$dateTill ]);
+        return view('paskaitos', ['events'=>$events, 'lecturers'=>$lecturers, 'reservations'=>$reservations, 'subjects'=>$subjects, 'cities'=>$cities, 'courses'=>$courses, 'lecturersForEdit'=>$lecturersForEdit, 'filtered'=>$filtered,
+           'category_value'=>$category, 'city_value'=>$city, 'capacity_value'=>$capacity, 'date_value'=>$dateInput, 'dateOneDay'=>$dateOneDay, 'dateFrom'=>$dateFrom, 'dateTill'=>$dateTill]);
     }
 
     public function search(Request $request)
     {
         $query = $request->input('search');
-        $events = Event::where('name', 'like', '%'.$query.'%')
-                       ->orWhere('description', 'like', '%'.$query.'%');
+        $events = Event::where('name', 'ilike', '%'.$query.'%')
+                       ->orWhere('description', 'ilike', '%'.$query.'%');
 
         $reservations = Reservation::whereIn('event_id', $events->pluck('events.id'))->get();
 

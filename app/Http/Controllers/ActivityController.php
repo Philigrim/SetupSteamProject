@@ -47,8 +47,10 @@ class ActivityController extends Controller
         $pastEvents1 = $reservations->where('date', '<', $date);
         $pastEvents2 = $reservations->where('date', $date)->where('end_time', '<', $time);
         $pastEvents = $pastEvents1->merge($pastEvents2)->sortBy('end_time')->sortBy('date');
+        
 
-        return view('manopaskaitos',['events'=>$events, 'futureEvents'=>$futureEvents, 'pastEvents'=>$pastEvents,'date'=>$date]);
+        $teachers=EventHasTeacher::all()->groupBy('event_id')->collect();
+        return view('manopaskaitos',['events'=>$events,'teachers'=>$teachers, 'futureEvents'=>$futureEvents, 'pastEvents'=>$pastEvents,'date'=>$date]);
     }
 
     public function update(Request $request){
@@ -61,10 +63,10 @@ class ActivityController extends Controller
         
         $newpupilcount = $request->pupil_count;
         // dd($oldteacherpupilcount);
-        $subcapacity = $capacity ->capacity_left -$oldteacherpupilcount->pupil_count + $newpupilcount;
+        $newcapacityleft = $capacity ->capacity_left +$oldteacherpupilcount->pupil_count - $newpupilcount;
         Event::where('id',$request->event_id)
                                                 ->update([
-                                                        'capacity_left'=>$subcapacity
+                                                        'capacity_left'=>$newcapacityleft
                                                     ]);
         EventHasTeacher::where([
             ['event_id','=',$request->event_id],

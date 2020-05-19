@@ -117,7 +117,6 @@
 <div class="container-fluid row d-flex justify-content-center">
     <div class="col-xl-6 mt-3">
     <div clas="row">
-    
 
         <!-- Search form -->
         <form action="{{ route('announcements.search') }}" method="get">
@@ -267,7 +266,7 @@
                     <img class="icon-sm pt-3" src="argon/img/icons/common/clock.svg" alt="">
                     <h5 class="pt-3 pr-2">{{ $reservation->date }}, {{ substr($reservation->start_time, 0, 5) }} - {{ substr($reservation->end_time, 0, 5) }}</h5>
                     <img class="icon-sm pt-3" src="argon/img/icons/common/user.svg" alt="">
-                    <h5 class="pt-3 pr-2">{{ $reservation->event->max_capacity - $reservation->event->capacity_left }}/{{ $reservation->event->max_capacity }}</h5>
+                    <h5 class="pt-3 pr-2">Dalyviai: {{ $reservation->event->max_capacity - $reservation->event->capacity_left }} iš {{ $reservation->event->max_capacity }}</h5>
                     <img class="icon-sm pt-3" src="argon/img/icons/common/book.svg" alt="">
                     <h5 class="pt-3">{{ $reservation->event->course->subject->subject }}</h5>
                 </div>

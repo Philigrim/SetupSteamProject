@@ -16,7 +16,8 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
 {{--JQUERY Form Validation--}}
-    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.1/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.1/dist/additional-methods.min.js"></script>
 
 {{--WIN CSS--}}
     <link href="{{ asset('css/win.css') }}" rel="stylesheet" type="text/css" >
@@ -379,6 +380,10 @@
         }
     }
 
+    $("form").submit(function(event) {
+        event.preventDefault();
+    });
+
     $("#remove-item").click(remove_item);
 
     // $("#set-row-amount").change(function(){
@@ -649,7 +654,12 @@
                     return parseInt($('#capacity5').attr("max"));
                 }
             },
-            description: 'required'
+            description: 'required',
+            file: {
+                required: false,
+                extension: 'doc,docx,pdf,txt,pptx,ppsx,odt,ods,odp,tiff,jpeg,png',
+                filesize: 5000000
+            },
         },
         messages: {
             name: 'Įrašykite pavadinimą',
@@ -718,12 +728,17 @@
                 required: "Pasirinkite vietų skaičių",
                 max: "Vietų skaičius per didelis"
             },
-            description: 'Įrašykite aprašymą'
+            description: 'Įrašykite aprašymą',
+            file: {
+                extension: "Netinkamas failo tipas",
+                filesize: "Failas per didelis(MAX 5MB)"
+            }
         },
         errorPlacement: function(error, element) {
             if (element.attr("name") == "datepicker0" || element.attr("name") == "datepicker1" ||
                 element.attr("name") == "datepicker2" || element.attr("name") == "datepicker3" ||
-                element.attr("name") == "datepicker4" || element.attr("name") == "datepicker5"){
+                element.attr("name") == "datepicker4" || element.attr("name") == "datepicker5" ||
+                element.attr("name") == "file"){
                 error.insertAfter( element.parent("div") );
             }else if(element.attr("name") == "lecturers[]"){
                 error.insertBefore( element.parent("div") );
@@ -732,10 +747,21 @@
             }
 
         },
-        submitHandler: function(form) {
+        submitHandler: function(form, event) {
+            alert("WAIT");
+            event.preventDefault();
             // do other things for a valid form
-            form.submit();
+            // form.submit();
         },
+    });
+
+    jQuery.validator.addMethod("filesize", function (value, element, arg) {
+        // var minsize=1000; // min 1kb
+        if(value<=arg){
+            return true;
+        }else{
+            return false;
+        }
     });
 
     jQuery.validator.addMethod("notDuplicate", function(value, element) {

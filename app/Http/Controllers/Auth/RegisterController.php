@@ -10,7 +10,7 @@ use App\Lecturer;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-
+use App\LecturerHasSubject;
 class RegisterController extends Controller
 {
     /*
@@ -57,7 +57,9 @@ class RegisterController extends Controller
             'usertype' => ['required','in:mokytojas,paskaitu_lektorius'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'password_confirmation' => ['required']
+            'password_confirmation' => ['required'],
+            'city'=>['required'],
+            // 'subject'=>['required']
         ],[
         'firstname.required' => ' Vardas yra privalomas.',
         'lastname.required' => ' Pavardė yra privaloma.',
@@ -66,7 +68,10 @@ class RegisterController extends Controller
         'email.email' => ' Neteisingas elektroninis paštas.',
         'usertype.required' => ' Privalote pasirinkti vartotojo tipą.',
         'password_confirmation.required' => ' Slaptažodžio pakartojimas yra privalomas.',
-        'password.required' => ' Slaptažodis yra privalomas'
+        'password.required' => ' Slaptažodis yra privalomas',
+        'city.required'=>' Miestas yra privalomas',
+        // 'subject.required'=>' Pasirinkti dėstytojui dalyką yra privaloma'
+
     ]);
     }
     /**
@@ -84,13 +89,14 @@ class RegisterController extends Controller
             'usertype' => $data['usertype'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'city_id'=>$data['city']
         ]);
-
         if($users->usertype == 'mokytojas'){
             Teacher::create(['user_id' => $users->id]);
         }elseif ($users->usertype == 'paskaitu_lektorius'){
             Lecturer::create(['user_id' => $users->id]);
-        }
+            LecturerHasSubject::create(['lecturer_id'=>Lecturer::all()->where('user_id','=',$users->id)->first()->id,'subject_id'=>$data['subject']]);  
+        }   
 
         return $users;
     }

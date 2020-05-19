@@ -33,16 +33,20 @@
     </script>
 @endsection
 @section('content')
-    @if($course_title ?? '' == null)
-        @include('users.partials.header', ['title' => __('Paskaitos'),
-             'description' => __("Čia matote visas STEAM centrų paskaitas. Į jas galite registruotis paspaudę - 'Registruotis', arba skaityti daugiau, paspaudę ant prisegto failo.")])
-    @elseif($course_title ?? '' == "neegzistuoja")
+
+    @if(isset($course_title))
+    @if($course_title == "neegzistuoja")
         @include('users.partials.header', ['title' => __('Paskaitos'),
              'description' => __("Toks kursas neegzistuoja.")])
     @else
         @include('users.partials.header', ['title' => __('Paskaitos'),
              'description' => __("Čia matote \"". $course_title ?? '' ."\" kurso paskaitas. Į jas galite registruotis paspaudę - 'Registruotis', arba skaityti daugiau, paspaudę ant prisegto failo.")])
     @endif
+    @else
+        @include('users.partials.header', ['title' => __('Paskaitos'),
+             'description' => __("Čia matote visas STEAM centrų paskaitas. Į jas galite registruotis paspaudę - 'Registruotis', arba skaityti daugiau, paspaudę ant prisegto failo.")])
+    @endif
+
     @if (session()->has('status'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         {{ session('status') }}
@@ -139,7 +143,7 @@
                   <h5 class="pt-3 pr-2">{{ $reservation->date }}, {{ substr($reservation->start_time, 0, 5) }} - {{ substr($reservation->end_time, 0, 5) }}</h5>
                   <img class="icon-sm pt-3" src="{{ asset('argon/img/icons/common/user.svg') }}" alt="">
                   @if($reservation->event->capacity_left > 0)
-                      <h5 class="pt-3 pr-2">{{ $reservation->event->max_capacity - $reservation->event->capacity_left }}/{{ $reservation->event->max_capacity }}</h5>
+                      <h5 class="pt-3 pr-2">Liko {{ $reservation->event->capacity_left }} iš {{ $reservation->event->max_capacity }}</h5>
                   @else
                       <h5 class="pt-3 pr-2 text-red">Vietų nėra</h5>
                   @endif
@@ -181,6 +185,7 @@
         </div>
 
         @if(Auth::user()->isRole()=="admin")
+        <!-- Promote-Edit-Delete -->
         <div class="col-" style="position: absolute; margin-left:1140px;">
           @if(date($reservation->date) < date('Y-m-d') || (date($reservation->date) == date('Y-m-d') && date($reservation->start_time) > date('h:i:s')))
             <button class="btn btn-dark" style="width: 130px; opacity: 1;" disabled>Praejęs</button>
@@ -518,6 +523,7 @@
               $('#time').html(result);
           }
       })
+
     var timeWas = $('#time_was').val();
     if(date_value == $('#date_was').val() && timeWas != "" && room_value==$('#room_was').val()) {
         $("#time").append(new Option(timeWas, timeWas));

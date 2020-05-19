@@ -75,10 +75,8 @@ class AnnouncementsController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('search');
-        $announcements = Announcement::where('title', 'like', '%'.$query.'%')
-                                     ->orWhere('author', 'like', '%'.$query.'%')
-                                     ->orWhere('text', 'like', '%'.$query.'%')
-                                     ->orWhere('created_at', 'like', '%'.$query.'%')
+        $announcements = Announcement::where('title', 'ilike', '%'.$query.'%')
+                                     ->orWhere('text', 'ilike', '%'.$query.'%')
                                      ->orderBy('id', 'desc')
                                      ->get();
 
